@@ -1,0 +1,205 @@
+
+// "Add Two Numbers"
+
+
+{
+  "title": "Add Two Numbers",
+  "description": "Given two numbers a and b add them up and return the outout",
+  "difficulty": "EASY",
+  "tags": ["math", "operators", "addition"],
+  "examples": {
+    "PYTHON": {
+      "input": "3 7",
+      "output": "10",
+      "explanation": "Adding 3 and 7 gives 10."
+    },
+    "JAVASCRIPT": {
+      "input": "-5 12",
+      "output": "7",
+      "explanation": "Adding -5 and 12 gives 7."
+    }
+  },
+  "constraints": "-10^9 ≤ a, b ≤ 10^9",
+  "testcases": [
+    {
+      "input": "100 200",
+      "output": "300"
+    },
+    {
+      "input": "-500 -600",
+      "output": "-1100"
+    },
+    {
+      "input": "0 0",
+      "output": "0"
+    }
+  ],
+  "codeSnippets": {
+    "JAVASCRIPT": "const fs = require('fs');\n\nfunction addTwoNumbers(a, b) {\n    // Write your code here\n    // Return the sum of a and b\n    return a + b;\n}\n\n// Reading input from stdin (using fs to read all input)\nconst input = fs.readFileSync(0, 'utf-8').trim();\nconst [a, b] = input.split(' ').map(Number);\n\nconsole.log(addTwoNumbers(a, b));",
+    "PYTHON": "def add_two_numbers(a, b):\n    # Write your code here\n    # Return the sum of a and b\n    return a + b\n\nimport sys\ninput_line = sys.stdin.read()\na, b = map(int, input_line.split())\nprint(add_two_numbers(a, b))",
+    "JAVA": "import java.util.Scanner;\n\npublic class Main {\n    public static int addTwoNumbers(int a, int b) {\n        // Write your code here\n        // Return the sum of a and b\n        return a + b;\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int a = sc.nextInt();\n        int b = sc.nextInt();\n        System.out.println(addTwoNumbers(a, b));\n    }\n}"
+  },
+  "referenceSolutions": {
+    "JAVASCRIPT": "const fs = require('fs');\n\n// Reading input from stdin (using fs to read all input)\nconst input = fs.readFileSync(0, 'utf-8').trim();\nconst [a, b] = input.split(' ').map(Number);\n\nconsole.log(a + b);",
+    "PYTHON": "import sys\ninput_line = sys.stdin.read()\na, b = map(int, input_line.split())\nprint(a + b)",
+    "JAVA": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int a = sc.nextInt();\n        int b = sc.nextInt();\n        System.out.println(a + b);\n    }\n}"
+  }
+}
+
+
+// "Multiply Two Numbers"
+
+{
+    "title": "Multiply Two Numbers",
+    "description": "Given two numbers a and b, multiply them and return the output.",
+    "difficulty": "EASY",
+    "tags": [
+        "math",
+        "operators",
+        "multiplication"
+    ],
+    "examples": {
+        "PYTHON": {
+            "input": "4 6",
+            "output": "24",
+            "explanation": "Multiplying 4 and 6 gives 24."
+        },
+        "JAVASCRIPT": {
+            "input": "-3 5",
+            "output": "-15",
+            "explanation": "Multiplying -3 and 5 gives -15."
+        }
+    },
+    "constraints": "-10^9 ≤ a, b ≤ 10^9",
+    "testcases": [
+        {
+            "input": "10 20",
+            "output": "200"
+        },
+        {
+            "input": "-7 -8",
+            "output": "56"
+        },
+        {
+            "input": "0 999",
+            "output": "0"
+        }
+    ],
+    "codeSnippets": {
+        "JAVASCRIPT": "const fs = require('fs');\n\nfunction multiplyTwoNumbers(a, b) {\n    return a * b;\n}\n\nconst input = fs.readFileSync(0, 'utf-8').trim();\nconst [a, b] = input.split(' ').map(Number);\nconsole.log(multiplyTwoNumbers(a, b));",
+        "PYTHON": "def multiply_two_numbers(a, b):\n    return a * b\n\nimport sys\na, b = map(int, sys.stdin.read().split())\nprint(multiply_two_numbers(a, b))",
+        "JAVA": "import java.util.Scanner;\n\npublic class Main {\n    public static int multiplyTwoNumbers(int a, int b) {\n        return a * b;\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int a = sc.nextInt();\n        int b = sc.nextInt();\n        System.out.println(multiplyTwoNumbers(a, b));\n    }\n}"
+    },
+    "referenceSolutions": {
+        "JAVASCRIPT": "const [a, b] = require('fs').readFileSync(0, 'utf-8').trim().split(' ').map(Number);\nconsole.log(a * b);",
+        "PYTHON": "a, b = map(int, __import__('sys').stdin.read().split())\nprint(a * b)",
+        "JAVA": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int a = sc.nextInt();\n        int b = sc.nextInt();\n        System.out.println(a * b);\n    }\n}"
+    }
+}
+
+
+// "Fibonacci Series"
+
+{
+    "title": "Fibonacci Series",
+    "description": "Given a number n, return the nth number in the Fibonacci sequence (0-indexed).",
+    "difficulty": "EASY",
+    "tags": [
+        "recursion",
+        "dynamic programming",
+        "math"
+    ],
+    "examples": {
+        "PYTHON": {
+            "input": "5",
+            "output": "5",
+            "explanation": "The 5th Fibonacci number is 5."
+        },
+        "JAVASCRIPT": {
+            "input": "7",
+            "output": "13",
+            "explanation": "The 7th Fibonacci number is 13."
+        }
+    },
+    "constraints": "0 ≤ n ≤ 50",
+    "testcases": [
+        {
+            "input": "0",
+            "output": "0"
+        },
+        {
+            "input": "1",
+            "output": "1"
+        },
+        {
+            "input": "10",
+            "output": "55"
+        }
+    ],
+    "codeSnippets": {
+        "JAVASCRIPT": "const fs = require('fs');\n\nfunction fibonacci(n) {\n    if (n <= 1) return n;\n    let a = 0, b = 1;\n    for (let i = 2; i <= n; i++) {\n        [a, b] = [b, a + b];\n    }\n    return b;\n}\n\nconst n = parseInt(fs.readFileSync(0, 'utf-8').trim());\nconsole.log(fibonacci(n));",
+        "PYTHON": "def fibonacci(n):\n    if n <= 1:\n        return n\n    a, b = 0, 1\n    for _ in range(2, n + 1):\n        a, b = b, a + b\n    return b\n\nimport sys\nn = int(sys.stdin.read())\nprint(fibonacci(n))",
+        "JAVA": "import java.util.Scanner;\n\npublic class Main {\n    public static int fibonacci(int n) {\n        if (n <= 1) return n;\n        int a = 0, b = 1;\n        for (int i = 2; i <= n; i++) {\n            int temp = a + b;\n            a = b;\n            b = temp;\n        }\n        return b;\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        System.out.println(fibonacci(n));\n    }\n}"
+    },
+    "referenceSolutions": {
+        "JAVASCRIPT": "const n = parseInt(require('fs').readFileSync(0, 'utf-8').trim());\nlet a = 0, b = 1;\nfor (let i = 2; i <= n; i++) [a, b] = [b, a + b];\nconsole.log(n <= 1 ? n : b);",
+        "PYTHON": "n = int(__import__('sys').stdin.read())\na, b = 0, 1\nfor _ in range(2, n + 1): a, b = b, a + b\nprint(n if n <= 1 else b)",
+        "JAVA": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        int a = 0, b = 1;\n        for (int i = 2; i <= n; i++) {\n            int temp = a + b;\n            a = b;\n            b = temp;\n        }\n        System.out.println(n <= 1 ? n : b);\n    }\n}"
+    }
+}
+
+
+// "Palindrome Number"
+
+{
+    "title": "Palindrome Number",
+    "description": "Given an integer n, check whether it is a palindrome number. A palindrome number is the same when read forward and backward.",
+    "difficulty": "EASY",
+    "tags": [
+      "math",
+      "string",
+      "number-theory"
+    ],
+    "examples": {
+      "PYTHON": {
+        "input": "121",
+        "output": "true",
+        "explanation": "121 reads the same forwards and backwards."
+      },
+      "JAVASCRIPT": {
+        "input": "123",
+        "output": "false",
+        "explanation": "123 is not the same backwards."
+      }
+    },
+    "constraints": "-10^9 ≤ n ≤ 10^9",
+    "testcases": [
+      {
+        "input": "121",
+        "output": "true"
+      },
+      {
+        "input": "123",
+        "output": "false"
+      },
+      {
+        "input": "-121",
+        "output": "false"
+      },
+      {
+        "input": "0",
+        "output": "true"
+      }
+    ],
+    "codeSnippets": {
+      "PYTHON": "def is_palindrome(n):\n    # Write your code here\n    return False\n\nimport sys\nn = int(sys.stdin.read())\nprint(str(is_palindrome(n)).lower())",
+      "JAVASCRIPT": "const fs = require('fs');\n\nfunction isPalindrome(n) {\n    // Write your code here\n    return false;\n}\n\nconst input = fs.readFileSync(0, 'utf-8').trim();\nconst n = Number(input);\nconsole.log(isPalindrome(n));",
+      "JAVA": "import java.util.Scanner;\n\npublic class Main {\n    public static boolean isPalindrome(int n) {\n        // Write your code here\n        return false;\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        System.out.println(isPalindrome(n));\n    }\n}"
+    },
+    "referenceSolutions": {
+      "PYTHON": "import sys\nn = int(sys.stdin.read())\n\ndef is_palindrome(n):\n    if n < 0:\n        print(\"false\")\n        return\n    original = str(n)\n    reversed_n = original[::-1]\n    print(\"true\" if original == reversed_n else \"false\")\n\nis_palindrome(n)",
+      "JAVASCRIPT": "const fs = require('fs');\nconst input = fs.readFileSync(0, 'utf-8').trim();\nconst n = Number(input);\n\nfunction isPalindrome(n) {\n    if (n < 0) return false;\n    const s = n.toString();\n    return s === s.split('').reverse().join('');\n}\n\nconsole.log(isPalindrome(n));",
+      "JAVA": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        if (n < 0) {\n            System.out.println(\"false\");\n            return;\n        }\n        String s = Integer.toString(n);\n        StringBuilder rev = new StringBuilder(s).reverse();\n        System.out.println(s.equals(rev.toString()));\n    }\n}"
+    }
+  }
+  

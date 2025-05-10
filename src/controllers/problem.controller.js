@@ -123,7 +123,7 @@ export const getProblemById = async (req, res) => {
 
     return res.status(200).json({
       sucess: true,
-      message: 'Message Created Successfully',
+      message: 'Fetched Problem Successfully',
       problem,
     });
   } catch (error) {
@@ -134,12 +134,89 @@ export const getProblemById = async (req, res) => {
   }
 };
 
-// TODO:
 export const updateProblem = async (req, res) => {
-  // id
-  // id--->problem ( condition)
-  // baaki kaam same as create
+  const { id } = req.params;
+
+  // Validate ID (assuming it's a string UUID or numeric string)
+  if (!id || typeof id !== 'string' || id.trim() === '') {
+    return res.status(400).json({ error: 'Invalid or missing problem ID.' });
+  }
+
+  const {
+    title,
+    description,
+    difficulty,
+    tags,
+    examples,
+    constraints,
+    testcases,
+    codeSnippets,
+    referenceSolutions,
+  } = req.body;
+
+  // Basic required field validation
+  if (!title || !description || !difficulty) {
+    return res.status(400).json({
+      error:
+        'Missing required fields: title, description, and difficulty are required.',
+    });
+  }
+
+  // Validate types (optional but helpful)
+  if (tags && !Array.isArray(tags)) {
+    return res.status(400).json({ error: 'Tags must be an array of strings.' });
+  }
+
+  if (examples && typeof examples !== 'object') {
+    return res
+      .status(400)
+      .json({ error: 'Examples must be a language-keyed object.' });
+  }
+
+  if (testcases && !Array.isArray(testcases)) {
+    return res
+      .status(400)
+      .json({ error: 'Testcases must be an array of objects.' });
+  }
+
+  try {
+    // Check if the problem exists
+    const problem = await db.problem.findUnique({ where: { id } });
+
+    if (!problem) {
+      return res.status(404).json({ error: 'Problem not found.' });
+    }
+
+    // Perform the update
+    const updatedProblem = await db.problem.update({
+      where: { id },
+      data: {
+        title,
+        description,
+        difficulty,
+        tags,
+        examples,
+        constraints,
+        testcases,
+        codeSnippets,
+        referenceSolutions,
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Problem updated successfully.',
+      updatedProblem,
+    });
+  } catch (error) {
+    console.error('Error updating problem:', error);
+    return res.status(500).json({
+      error: 'An internal server error occurred while updating the problem.',
+    });
+  }
 };
+
+
 
 export const deleteProblem = async (req, res) => {
   const { id } = req.params;
