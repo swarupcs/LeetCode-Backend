@@ -261,6 +261,13 @@ export const getAllProblemsSolvedByUser = async (req, res) => {
       },
     });
 
+    if (!problems || problems.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: 'You have not solved any problems yet.',
+      });
+    }
+
     res.status(200).json({
       success: true,
       message: 'Problems fetched successfully',
