@@ -37,8 +37,9 @@ export const createProblem = async (req, res) => {
     },
   });
   if (checkAlreadyExistProblem) {
-    return res.status(400).json({
-      error: 'Problem with this title already exists',
+    return res.status(409).json({
+      success: false,
+      message: 'Problem with this title already exists',
     });
   }
 
