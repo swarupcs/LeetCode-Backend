@@ -17,7 +17,6 @@ import {
    in different languages before creating a new problem in the database.
 */
 
-
 export const createProblem = async (req, res) => {
   const {
     title,
@@ -53,7 +52,6 @@ export const createProblem = async (req, res) => {
           .json({ error: `Language ${language} is not supported` });
       }
 
-      
       const submissions = testcases.map(({ input, output }) => ({
         source_code: solutionCode,
         language_id: languageId,
@@ -62,10 +60,10 @@ export const createProblem = async (req, res) => {
       }));
 
       console.log('Submissions', submissions);
-      console.log("-----------------------");
+      console.log('-----------------------');
 
       const submissionResults = await submitBatch(submissions);
-      console.log("submissionResults", submissionResults);
+      console.log('submissionResults', submissionResults);
       console.log('-----------------------');
 
       const tokens = submissionResults.map((res) => res.token);
@@ -73,7 +71,7 @@ export const createProblem = async (req, res) => {
       console.log('-----------------------');
 
       const results = await pollBatchResults(tokens);
-      console.log("results", results);
+      console.log('results', results);
       console.log('-----------------------');
 
       for (let i = 0; i < results.length; i++) {
@@ -120,8 +118,16 @@ export const createProblem = async (req, res) => {
 
 export const getAllProblems = async (req, res) => {
   try {
-    const problems = await db.problem.findMany();
-    console.log("problems", problems);
+    const problems = await db.problem.findMany({
+      include: {
+        solvedBy: {
+          where: {
+            userId: req.user.id,
+          },
+        },
+      },
+    });
+    console.log('problems', problems);
     if (!problems || problems.length === 0) {
       return res.status(404).json({ error: 'Problems not found.' });
     }
@@ -135,7 +141,6 @@ export const getAllProblems = async (req, res) => {
     return res.status(500).json({
       error: 'Error While Fetching Problems',
     });
-    
   }
 };
 
@@ -247,8 +252,6 @@ export const updateProblem = async (req, res) => {
     });
   }
 };
-
-
 
 export const deleteProblem = async (req, res) => {
   const { id } = req.params;
