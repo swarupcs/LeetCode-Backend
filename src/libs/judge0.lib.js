@@ -12,6 +12,18 @@ export const getJudge0LanguageId = (language) => {
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+/**
+ This function, pollBatchResults, continuously checks the status of a batch of submissions on the Judge0 API 
+ until all submissions have completed (i.e., their status is not 1 or 2, 
+ which likely represent "in progress" or "pending" states). 
+ It returns the results once all submissions are done.
+ */
+
+ /*
+This  function named sends a batch of submissions to 
+the Judge0 API. It takes an array of submissions as input, posts it to the API, 
+logs the response data, and returns an array of submission tokens.
+ */
 export const pollBatchResults = async (tokens) => {
   while (true) {
     const { data } = await axios.get(
@@ -35,6 +47,14 @@ export const pollBatchResults = async (tokens) => {
   }
 };
 
+
+/*
+
+
+This function sends a batch of submissions to the Judge0 API and 
+returns an array of submission tokens. It takes an array of submissions as input, 
+posts it to the API, logs the response data, and returns the response.
+*/
 export const submitBatch = async (submissions) => {
   const { data } = await axios.post(
     `${process.env.JUDGE0_API_URL}/submissions/batch?base64_encoded=false`,

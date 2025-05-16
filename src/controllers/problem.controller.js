@@ -5,6 +5,18 @@ import {
   submitBatch,
 } from '../libs/judge0.lib.js';
 
+/*
+  1. It extracts problem details from the request body.
+  2. It iterates through reference solutions for each language and:
+    a. Checks if the language is supported.
+    b. Submits test cases to a judging system (Judge0) and retrieves results.
+    c. Checks if all test cases pass for each language. If any fail, it returns an error.
+  3. If all test cases pass, it creates a new problem in the database using Prisma.
+  4. It returns a success response with the newly created problem.
+  In essence, this endpoint validates problem submissions by running test cases against reference solutions
+   in different languages before creating a new problem in the database.
+*/
+
 export const createProblem = async (req, res) => {
   const {
     title,
@@ -18,7 +30,17 @@ export const createProblem = async (req, res) => {
     referenceSolutions,
   } = req.body;
 
-  // going to check the user role once again
+  const checkAlreadyExistProblem = await db.problem.findFirst({
+    where: {
+      title,
+    },
+  });
+  if (checkAlreadyExistProblem) {
+    return res.status(409).json({
+      success: false,
+      message: 'Problem with this title already exists',
+    });
+  }
 
   try {
     for (const [language, solutionCode] of Object.entries(referenceSolutions)) {
@@ -30,7 +52,6 @@ export const createProblem = async (req, res) => {
           .json({ error: `Language ${language} is not supported` });
       }
 
-      //
       const submissions = testcases.map(({ input, output }) => ({
         source_code: solutionCode,
         language_id: languageId,
@@ -38,11 +59,20 @@ export const createProblem = async (req, res) => {
         expected_output: output,
       }));
 
+      console.log('Submissions', submissions);
+      console.log('-----------------------');
+
       const submissionResults = await submitBatch(submissions);
+      console.log('submissionResults', submissionResults);
+      console.log('-----------------------');
 
       const tokens = submissionResults.map((res) => res.token);
+      console.log('Tokens', tokens);
+      console.log('-----------------------');
 
       const results = await pollBatchResults(tokens);
+      console.log('results', results);
+      console.log('-----------------------');
 
       for (let i = 0; i < results.length; i++) {
         const result = results[i];
@@ -86,7 +116,33 @@ export const createProblem = async (req, res) => {
   }
 };
 
-export const getAllProblems = async (req, res) => {};
+export const getAllProblems = async (req, res) => {
+  try {
+    const problems = await db.problem.findMany({
+      include: {
+        solvedBy: {
+          where: {
+            userId: req.user.id,
+          },
+        },
+      },
+    });
+    console.log('problems', problems);
+    if (!problems || problems.length === 0) {
+      return res.status(404).json({ error: 'Problems not found.' });
+    }
+    return res.status(200).json({
+      success: true,
+      message: 'Problems fetched successfully',
+      problems,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      error: 'Error While Fetching Problems',
+    });
+  }
+};
 
 export const getProblemById = async (req, res) => {
   const { id } = req.params;
@@ -104,7 +160,7 @@ export const getProblemById = async (req, res) => {
 
     return res.status(200).json({
       sucess: true,
-      message: 'Message Created Successfully',
+      message: 'Fetched Problem Successfully',
       problem,
     });
   } catch (error) {
@@ -115,11 +171,86 @@ export const getProblemById = async (req, res) => {
   }
 };
 
-// TODO:
 export const updateProblem = async (req, res) => {
-  // id
-  // id--->problem ( condition)
-  // baaki kaam same as create
+  const { id } = req.params;
+
+  // Validate ID (assuming it's a string UUID or numeric string)
+  if (!id || typeof id !== 'string' || id.trim() === '') {
+    return res.status(400).json({ error: 'Invalid or missing problem ID.' });
+  }
+
+  const {
+    title,
+    description,
+    difficulty,
+    tags,
+    examples,
+    constraints,
+    testcases,
+    codeSnippets,
+    referenceSolutions,
+  } = req.body;
+
+  // Basic required field validation
+  if (!title || !description || !difficulty) {
+    return res.status(400).json({
+      error:
+        'Missing required fields: title, description, and difficulty are required.',
+    });
+  }
+
+  // Validate types (optional but helpful)
+  if (tags && !Array.isArray(tags)) {
+    return res.status(400).json({ error: 'Tags must be an array of strings.' });
+  }
+
+  if (examples && typeof examples !== 'object') {
+    return res
+      .status(400)
+      .json({ error: 'Examples must be a language-keyed object.' });
+  }
+
+  if (testcases && !Array.isArray(testcases)) {
+    return res
+      .status(400)
+      .json({ error: 'Testcases must be an array of objects.' });
+  }
+
+  try {
+    // Check if the problem exists
+    const problem = await db.problem.findUnique({ where: { id } });
+
+    if (!problem) {
+      return res.status(404).json({ error: 'Problem not found.' });
+    }
+
+    // Perform the update
+    const updatedProblem = await db.problem.update({
+      where: { id },
+      data: {
+        title,
+        description,
+        difficulty,
+        tags,
+        examples,
+        constraints,
+        testcases,
+        codeSnippets,
+        referenceSolutions,
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Problem updated successfully.',
+      updatedProblem,
+    });
+  } catch (error) {
+    console.error('Error updating problem:', error);
+    return res.status(500).json({
+      error: 'An internal server error occurred while updating the problem.',
+    });
+  }
 };
 
 export const deleteProblem = async (req, res) => {
@@ -164,6 +295,13 @@ export const getAllProblemsSolvedByUser = async (req, res) => {
         },
       },
     });
+
+    if (!problems || problems.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: 'You have not solved any problems yet.',
+      });
+    }
 
     res.status(200).json({
       success: true,
