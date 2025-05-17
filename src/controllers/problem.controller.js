@@ -344,37 +344,52 @@ export const deleteProblem = async (req, res) => {
 
 export const getAllProblemsSolvedByUser = async (req, res) => {
   try {
-    const problems = await db.problem.findMany({
-      where: {
-        solvedBy: {
-          some: {
-            userId: req.user.id,
-          },
-        },
-      },
-      include: {
-        solvedBy: {
-          where: {
-            userId: req.user.id,
-          },
-        },
-      },
-    });
-
-    if (!problems || problems.length === 0) {
-      return res.status(200).json({
-        success: true,
-        message: 'You have not solved any problems yet.',
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Unauthorized: User ID missing in request',
       });
     }
 
-    res.status(200).json({
+    // Fetch problems solved by the user
+    const problems = await db.problem.findMany({
+      where: {
+        solvedBy: {
+          some: { userId },
+        },
+      },
+      // Include solvedBy relation filtered to current user if you want details
+      include: {
+        solvedBy: {
+          where: { userId },
+          select: { createdAt: true }, // example: select only date solved, adjust as needed
+        },
+      },
+      orderBy: { updatedAt: 'desc' }, // optional: latest updated first
+      // skip: 0, // optional pagination
+      // take: 20,
+    });
+
+    if (!problems.length) {
+      return res.status(200).json({
+        success: true,
+        message: 'You have not solved any problems yet.',
+        problems: [],
+      });
+    }
+
+    return res.status(200).json({
       success: true,
       message: 'Problems fetched successfully',
       problems,
     });
   } catch (error) {
-    console.error('Error fetching problems :', error);
-    res.status(500).json({ error: 'Failed to fetch problems' });
+    console.error('Error fetching problems:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch problems',
+    });
   }
 };
+
