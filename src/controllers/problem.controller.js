@@ -214,7 +214,6 @@ export const getProblemById = async (req, res) => {
 export const updateProblem = async (req, res) => {
   const { id } = req.params;
 
-  // Validate ID (assuming it's a string UUID or numeric string)
   if (!id || typeof id !== 'string' || id.trim() === '') {
     return res.status(400).json({ error: 'Invalid or missing problem ID.' });
   }
@@ -226,20 +225,21 @@ export const updateProblem = async (req, res) => {
     tags,
     examples,
     constraints,
-    testcases,
     codeSnippets,
     referenceSolutions,
+    hints,
+    editorial,
+    problemNumber,
+    testcases, // array of { input, expected, isPublic }
   } = req.body;
 
-  // Basic required field validation
+  // Validate required fields
   if (!title || !description || !difficulty) {
     return res.status(400).json({
-      error:
-        'Missing required fields: title, description, and difficulty are required.',
+      error: 'Missing required fields: title, description, and difficulty.',
     });
   }
 
-  // Validate types (optional but helpful)
   if (tags && !Array.isArray(tags)) {
     return res.status(400).json({ error: 'Tags must be an array of strings.' });
   }
@@ -257,27 +257,46 @@ export const updateProblem = async (req, res) => {
   }
 
   try {
-    // Check if the problem exists
-    const problem = await db.problem.findUnique({ where: { id } });
-
-    if (!problem) {
+    const existingProblem = await db.problem.findUnique({ where: { id } });
+    if (!existingProblem) {
       return res.status(404).json({ error: 'Problem not found.' });
     }
 
-    // Perform the update
-    const updatedProblem = await db.problem.update({
-      where: { id },
-      data: {
-        title,
-        description,
-        difficulty,
-        tags,
-        examples,
-        constraints,
-        testcases,
-        codeSnippets,
-        referenceSolutions,
-      },
+    // Update problem and testcases in a transaction
+    const updatedProblem = await db.$transaction(async (tx) => {
+      // Update main problem
+      const updated = await tx.problem.update({
+        where: { id },
+        data: {
+          title,
+          description,
+          difficulty,
+          tags,
+          examples,
+          constraints,
+          codeSnippets,
+          referenceSolutions,
+          hints,
+          editorial,
+          problemNumber,
+        },
+      });
+
+      // If testcases are provided, delete old ones and create new ones
+      if (Array.isArray(testcases)) {
+        await tx.testCase.deleteMany({ where: { problemId: id } });
+
+        const formattedTestCases = testcases.map((t) => ({
+          input: t.input,
+          expected: t.expected,
+          isPublic: !!t.isPublic,
+          problemId: id,
+        }));
+
+        await tx.testCase.createMany({ data: formattedTestCases });
+      }
+
+      return updated;
     });
 
     return res.status(200).json({
@@ -292,6 +311,7 @@ export const updateProblem = async (req, res) => {
     });
   }
 };
+
 
 export const deleteProblem = async (req, res) => {
   const { id } = req.params;
