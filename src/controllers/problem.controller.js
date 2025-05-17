@@ -29,22 +29,36 @@ export const createProblem = async (req, res) => {
     constraints,
     codeSnippets,
     referenceSolutions,
+    hints,
+    editorial,
+    problemNumber,
   } = problem;
 
-  // Check for duplicate problem title
-  const existingProblem = await db.problem.findFirst({
-    where: { title },
-  });
-
-  if (existingProblem) {
-    return res.status(409).json({
+  if (!title || !description || !difficulty) {
+    return res.status(400).json({
       success: false,
-      message: 'Problem with this title already exists',
+      message: 'Title, description, and difficulty are required.',
     });
   }
 
   try {
-    // Validate reference solutions using Judge0 for each language
+    // Check for duplicate title or problem number (if provided)
+    const existingProblem = await db.problem.findFirst({
+      where: {
+        OR: [{ title }, problemNumber ? { problemNumber } : undefined].filter(
+          Boolean
+        ),
+      },
+    });
+
+    if (existingProblem) {
+      return res.status(409).json({
+        success: false,
+        message: 'Problem with this title or number already exists.',
+      });
+    }
+
+    // Validate reference solutions using Judge0
     for (const [language, solutionCode] of Object.entries(referenceSolutions)) {
       const languageId = getJudge0LanguageId(language);
 
@@ -69,35 +83,45 @@ export const createProblem = async (req, res) => {
         const result = results[i];
         if (result.status.id !== 3) {
           return res.status(400).json({
-            error: `Testcase ${i + 1} failed for language ${language}`,
+            error: `Reference solution failed on testcase ${
+              i + 1
+            } for language ${language}`,
           });
         }
       }
     }
 
-    // Create problem first
-    const newProblem = await db.problem.create({
-      data: {
-        title,
-        description,
-        difficulty,
-        tags,
-        examples,
-        constraints,
-        codeSnippets,
-        referenceSolutions,
-        userId: req.user.id,
-      },
-    });
+    // Use a transaction to ensure atomicity
+    const newProblem = await db.$transaction(async (tx) => {
+      const createdProblem = await tx.problem.create({
+        data: {
+          title,
+          description,
+          difficulty,
+          tags,
+          examples,
+          constraints,
+          codeSnippets,
+          referenceSolutions,
+          userId: req.user.id,
+          hints,
+          editorial,
+          problemNumber,
+        },
+      });
 
-    // Create all test cases linked to the new problem
-    await db.testCase.createMany({
-      data: testCases.map((tc) => ({
-        input: tc.input,
-        expected: tc.expected,
-        isPublic: tc.isPublic,
-        problemId: newProblem.id,
-      })),
+      if (Array.isArray(testCases)) {
+        await tx.testCase.createMany({
+          data: testCases.map((tc) => ({
+            input: tc.input,
+            expected: tc.expected,
+            isPublic: !!tc.isPublic,
+            problemId: createdProblem.id,
+          })),
+        });
+      }
+
+      return createdProblem;
     });
 
     return res.status(201).json({
@@ -106,13 +130,14 @@ export const createProblem = async (req, res) => {
       problem: newProblem,
     });
   } catch (error) {
-    console.error(error);
+    console.error('Create problem error:', error);
     return res.status(500).json({
       success: false,
       message: 'Internal Server Error while creating the problem',
     });
   }
 };
+
 
 
 export const getAllProblems = async (req, res) => {
@@ -235,6 +260,9 @@ export const updateProblem = async (req, res) => {
 
   // Validate required fields
   if (!title || !description || !difficulty) {
+    console.log('title', title);
+    console.log('description', description);
+    console.log('difficulty', difficulty);
     return res.status(400).json({
       error: 'Missing required fields: title, description, and difficulty.',
     });
