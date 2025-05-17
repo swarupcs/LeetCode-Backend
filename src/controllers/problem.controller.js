@@ -317,25 +317,32 @@ export const deleteProblem = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const problem = await db.problem.findUnique({ where: { id } });
+    // Check if the problem exists
+    const problem = await db.problem.findUnique({
+      where: { id },
+    });
 
     if (!problem) {
-      return res.status(404).json({ error: 'Problem Not found' });
+      return res.status(404).json({ error: 'Problem not found' });
     }
 
-    await db.problem.delete({ where: { id } });
+    // Delete the problem (related entries will be removed via onDelete: Cascade)
+    await db.problem.delete({
+      where: { id },
+    });
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      message: 'Problem deleted Successfully',
+      message: 'Problem deleted successfully',
     });
   } catch (error) {
-    console.log(error);
+    console.error('Error while deleting problem:', error);
     return res.status(500).json({
-      error: 'Error While deleting the problem',
+      error: 'An error occurred while deleting the problem',
     });
   }
 };
+
 
 export const getAllProblemsSolvedByUser = async (req, res) => {
   try {
