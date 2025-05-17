@@ -118,50 +118,47 @@ export const createProblem = async (req, res) => {
 export const getAllProblems = async (req, res) => {
   try {
     const problems = await db.problem.findMany({
+      orderBy: {
+        problemNumber: 'asc', // Optional: shows in order of problemNumber if available
+      },
       include: {
         solvedBy: {
           where: {
             userId: req.user.id,
           },
-          select: { id: true }, // Only to check existence
+          select: {
+            id: true, // You can customize what fields you want from ProblemSolved
+          },
         },
-      },
-      orderBy: {
-        problemNumber: 'asc', // Optional: sort by problem number
+        testCases: {
+          where: {
+            isPublic: true, // Optionally include only public test cases
+          },
+          select: {
+            input: true,
+            expected: true,
+          },
+        },
       },
     });
 
     if (!problems || problems.length === 0) {
-      return res.status(404).json({ error: 'No problems found.' });
+      return res.status(404).json({ error: 'Problems not found.' });
     }
-
-    // Map to include isSolved field
-    const formattedProblems = problems.map((problem) => ({
-      id: problem.id,
-      title: problem.title,
-      description: problem.description,
-      difficulty: problem.difficulty,
-      tags: problem.tags,
-      problemNumber: problem.problemNumber,
-      examples: problem.examples,
-      constraints: problem.constraints,
-      codeSnippets: problem.codeSnippets,
-      referenceSolutions: problem.referenceSolutions,
-      isSolved: problem.solvedBy.length > 0, // ✅ custom flag
-    }));
 
     return res.status(200).json({
       success: true,
       message: 'Problems fetched successfully',
-      problems: formattedProblems,
+      problems,
     });
   } catch (error) {
-    console.error('Fetch problems error:', error);
+    console.error('Error fetching problems:', error);
     return res.status(500).json({
       error: 'Error while fetching problems',
     });
   }
 };
+
 
 
 export const getProblemById = async (req, res) => {
@@ -170,7 +167,26 @@ export const getProblemById = async (req, res) => {
   try {
     const problem = await db.problem.findUnique({
       where: {
-        id,
+        id, // You can also support problemNumber: parseInt(id) if needed
+      },
+      include: {
+        testCases: {
+          where: {
+            isPublic: true, // only show public test cases
+          },
+          select: {
+            input: true,
+            expected: true,
+          },
+        },
+        solvedBy: {
+          where: {
+            userId: req.user.id,
+          },
+          select: {
+            id: true,
+          },
+        },
       },
     });
 
@@ -179,17 +195,21 @@ export const getProblemById = async (req, res) => {
     }
 
     return res.status(200).json({
-      sucess: true,
-      message: 'Fetched Problem Successfully',
-      problem,
+      success: true,
+      message: 'Fetched problem successfully',
+      problem: {
+        ...problem,
+        isSolved: problem.solvedBy.length > 0,
+      },
     });
   } catch (error) {
-    console.log(error);
+    console.error('Error fetching problem by ID:', error);
     return res.status(500).json({
-      error: 'Error While Fetching Problem by id',
+      error: 'Error while fetching problem by ID',
     });
   }
 };
+
 
 export const updateProblem = async (req, res) => {
   const { id } = req.params;
