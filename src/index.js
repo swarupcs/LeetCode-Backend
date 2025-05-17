@@ -3,10 +3,10 @@ import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import authRoutes from './routes/auth.routes.js';
 import problemRoutes from './routes/problem.route.js';
-import executionRoute from './routes/executeCode.routes.js';
 import submissionRoutes from './routes/submission.routes.js';
 import playlistRoutes from './routes/playlist.routes.js';
 import cors from "cors";
+import runCode from './routes/runCode.routes.js';
 
 dotenv.config();
 
@@ -31,7 +31,7 @@ app.use('/api/v1/auth', authRoutes);
 
 app.use('/api/v1/problems', problemRoutes);
 
-app.use('/api/v1/execute-code', executionRoute);
+app.use('/api/v1/runCode', runCode);
 app.use('/api/v1/submission', submissionRoutes);
 app.use('/api/v1/playlist', playlistRoutes);
 
