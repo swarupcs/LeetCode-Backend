@@ -44,12 +44,13 @@ model User {
 model Problem {
   id          String     @id @default(uuid())
   title       String
+  problemNumber   Int?      @unique // Optional + Unique
   description String
   difficulty  Difficulty
+  constraints String
   tags        String[] // ["tag1", "tag2", "tag3"]
   userId      String
   examples    Json
-  constraints String
   hints       String?
   editorial   String?
 
@@ -57,7 +58,6 @@ model Problem {
   codeSnippets       Json
   referenceSolutions Json
 
-  problemNumber   Int?      @unique // Optional + Unique
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

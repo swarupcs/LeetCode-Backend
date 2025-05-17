@@ -18,20 +18,26 @@ import {
 */
 
 export const createProblem = async (req, res) => {
-  const { problem, testCases } = req.body;
+  const { problemNumber, problem, testCases } = req.body;
+
+  if (!problem) {
+    return res.status(400).json({
+      success: false,
+      message: 'Problem data is required in the request body.',
+    });
+  }
 
   const {
     title,
     description,
     difficulty,
-    tags,
-    examples,
-    constraints,
-    codeSnippets,
-    referenceSolutions,
-    hints,
-    editorial,
-    problemNumber,
+    tags = [],
+    examples = [],
+    constraints = '',
+    codeSnippets = {},
+    referenceSolutions = {},
+    hints = '',
+    editorial = '',
   } = problem;
 
   if (!title || !description || !difficulty) {
@@ -42,12 +48,10 @@ export const createProblem = async (req, res) => {
   }
 
   try {
-    // Check for duplicate title or problem number (if provided)
+    // Check for existing title or problemNumber
     const existingProblem = await db.problem.findFirst({
       where: {
-        OR: [{ title }, problemNumber ? { problemNumber } : undefined].filter(
-          Boolean
-        ),
+        OR: [{ title }, ...(problemNumber ? [{ problemNumber }] : [])],
       },
     });
 
@@ -63,9 +67,10 @@ export const createProblem = async (req, res) => {
       const languageId = getJudge0LanguageId(language);
 
       if (!languageId) {
-        return res
-          .status(400)
-          .json({ error: `Language ${language} is not supported` });
+        return res.status(400).json({
+          success: false,
+          message: `Language ${language} is not supported`,
+        });
       }
 
       const submissions = testCases.map(({ input, expected }) => ({
@@ -83,18 +88,21 @@ export const createProblem = async (req, res) => {
         const result = results[i];
         if (result.status.id !== 3) {
           return res.status(400).json({
-            error: `Reference solution failed on testcase ${
+            success: false,
+            message: `Reference solution failed on testcase #${
               i + 1
             } for language ${language}`,
+            details: result,
           });
         }
       }
     }
 
-    // Use a transaction to ensure atomicity
+    // Save the problem and test cases
     const newProblem = await db.$transaction(async (tx) => {
       const createdProblem = await tx.problem.create({
         data: {
+          problemNumber,
           title,
           description,
           difficulty,
@@ -106,7 +114,6 @@ export const createProblem = async (req, res) => {
           userId: req.user.id,
           hints,
           editorial,
-          problemNumber,
         },
       });
 
@@ -115,7 +122,7 @@ export const createProblem = async (req, res) => {
           data: testCases.map((tc) => ({
             input: tc.input,
             expected: tc.expected,
-            isPublic: !!tc.isPublic,
+            isPublic: Boolean(tc.isPublic),
             problemId: createdProblem.id,
           })),
         });
@@ -137,6 +144,7 @@ export const createProblem = async (req, res) => {
     });
   }
 };
+
 
 
 
