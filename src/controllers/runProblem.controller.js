@@ -8,46 +8,45 @@ import {
 export const runProblem = async (req, res) => {
   try {
     const { source_code, language_id, problemId } = req.body;
-    const userId = req.user.id;
 
     if (!source_code || !language_id || !problemId) {
-      return res
-        .status(400)
-        .json({ error: 'source_code, language_id and problemId are required' });
+      return res.status(400).json({
+        error: 'source_code, language_id and problemId are required',
+      });
     }
 
-    // 1. Fetch public test cases from DB for the problem
+    // 1. Fetch public test cases from DB
     const publicTestCases = await db.testCase.findMany({
       where: {
         problemId,
         isPublic: true,
       },
       orderBy: {
-        id: 'asc', // to keep order consistent
+        id: 'asc',
       },
     });
 
     if (!publicTestCases.length) {
-      return res
-        .status(404)
-        .json({ error: 'No public test cases found for this problem.' });
+      return res.status(404).json({
+        error: 'No public test cases found for this problem.',
+      });
     }
 
-    // 2. Prepare submissions for Judge0 batch API
+    // 2. Prepare submissions for Judge0
     const submissions = publicTestCases.map(({ input }) => ({
       source_code,
       language_id,
       stdin: input,
     }));
 
-    // 3. Submit batch to Judge0 and get tokens
+    // 3. Submit to Judge0
     const submitResponse = await submitBatch(submissions);
     const tokens = submitResponse.map((r) => r.token);
 
-    // 4. Poll Judge0 for batch results
+    // 4. Poll for results
     const results = await pollBatchResults(tokens);
 
-    // 5. Analyze results and compare with expected outputs
+    // 5. Analyze results
     let allPassed = true;
     const detailedResults = results.map((result, i) => {
       const stdout = result.stdout?.trim() ?? '';
@@ -68,82 +67,19 @@ export const runProblem = async (req, res) => {
       };
     });
 
-    // 6. Store submission summary in DB
-    const submission = await db.submission.create({
-      data: {
-        userId,
-        problemId,
-        sourceCode: source_code,
-        language: getLanguageName(language_id),
-        stdin: publicTestCases.map((tc) => tc.input).join('\n'),
-        stdout: JSON.stringify(detailedResults.map((r) => r.stdout)),
-        stderr: detailedResults.some((r) => r.stderr)
-          ? JSON.stringify(detailedResults.map((r) => r.stderr))
-          : null,
-        compileOutput: detailedResults.some((r) => r.compile_output)
-          ? JSON.stringify(detailedResults.map((r) => r.compile_output))
-          : null,
-        status: allPassed ? 'Accepted' : 'Wrong Answer',
-        memory: detailedResults.some((r) => r.memory)
-          ? JSON.stringify(detailedResults.map((r) => r.memory))
-          : null,
-        time: detailedResults.some((r) => r.time)
-          ? JSON.stringify(detailedResults.map((r) => r.time))
-          : null,
-      },
-    });
-
-    // 7. If all passed, mark problem solved for user
-    if (allPassed) {
-      await db.problemSolved.upsert({
-        where: {
-          userId_problemId: {
-            userId,
-            problemId,
-          },
-        },
-        update: {},
-        create: {
-          userId,
-          problemId,
-        },
-      });
-    }
-
-    // 8. Store individual test case results
-    const testCaseResults = detailedResults.map((result) => ({
-      submissionId: submission.id,
-      testCase: result.testCase,
-      passed: result.passed,
-      stdout: result.stdout,
-      expected: result.expected,
-      stderr: result.stderr,
-      compileOutput: result.compile_output,
-      status: result.status,
-      memory: result.memory,
-      time: result.time,
-    }));
-
-    await db.testCaseResult.createMany({
-      data: testCaseResults,
-    });
-
-    // 9. Fetch submission with test case results to return
-    const submissionWithTestCase = await db.submission.findUnique({
-      where: { id: submission.id },
-      include: { testCases: true },
-    });
-
+    // 6. Return result (no DB save)
     return res.status(200).json({
       success: true,
       message: 'Code executed successfully on public test cases.',
-      submission: submissionWithTestCase,
+      allPassed,
+      results: detailedResults,
     });
   } catch (error) {
     console.error('Error executing code:', error);
     return res.status(500).json({ error: 'Failed to execute code' });
   }
 };
+
 
 
 export const submitProblem; = async (req, res) => {
