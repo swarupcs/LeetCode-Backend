@@ -18,6 +18,8 @@ import {
 */
 
 export const createProblem = async (req, res) => {
+  const { problem, testCases } = req.body;
+
   const {
     title,
     description,
@@ -25,17 +27,16 @@ export const createProblem = async (req, res) => {
     tags,
     examples,
     constraints,
-    testcases,
     codeSnippets,
     referenceSolutions,
-  } = req.body;
+  } = problem;
 
-  const checkAlreadyExistProblem = await db.problem.findFirst({
-    where: {
-      title,
-    },
+  // Check for duplicate problem title
+  const existingProblem = await db.problem.findFirst({
+    where: { title },
   });
-  if (checkAlreadyExistProblem) {
+
+  if (existingProblem) {
     return res.status(409).json({
       success: false,
       message: 'Problem with this title already exists',
@@ -43,6 +44,7 @@ export const createProblem = async (req, res) => {
   }
 
   try {
+    // Validate reference solutions using Judge0 for each language
     for (const [language, solutionCode] of Object.entries(referenceSolutions)) {
       const languageId = getJudge0LanguageId(language);
 
@@ -52,34 +54,19 @@ export const createProblem = async (req, res) => {
           .json({ error: `Language ${language} is not supported` });
       }
 
-      const submissions = testcases.map(({ input, output }) => ({
+      const submissions = testCases.map(({ input, expected }) => ({
         source_code: solutionCode,
         language_id: languageId,
         stdin: input,
-        expected_output: output,
+        expected_output: expected,
       }));
 
-      console.log('Submissions', submissions);
-      console.log('-----------------------');
-
       const submissionResults = await submitBatch(submissions);
-      console.log('submissionResults', submissionResults);
-      console.log('-----------------------');
-
       const tokens = submissionResults.map((res) => res.token);
-      console.log('Tokens', tokens);
-      console.log('-----------------------');
-
       const results = await pollBatchResults(tokens);
-      console.log('results', results);
-      console.log('-----------------------');
 
       for (let i = 0; i < results.length; i++) {
         const result = results[i];
-        console.log('Result-----', result);
-        // console.log(
-        //   `Testcase ${i + 1} and Language ${language} ----- result ${JSON.stringify(result.status.description)}`
-        // );
         if (result.status.id !== 3) {
           return res.status(400).json({
             error: `Testcase ${i + 1} failed for language ${language}`,
@@ -88,6 +75,7 @@ export const createProblem = async (req, res) => {
       }
     }
 
+    // Create problem first
     const newProblem = await db.problem.create({
       data: {
         title,
@@ -96,25 +84,36 @@ export const createProblem = async (req, res) => {
         tags,
         examples,
         constraints,
-        testcases,
         codeSnippets,
         referenceSolutions,
         userId: req.user.id,
       },
     });
 
+    // Create all test cases linked to the new problem
+    await db.testCase.createMany({
+      data: testCases.map((tc) => ({
+        input: tc.input,
+        expected: tc.expected,
+        isPublic: tc.isPublic,
+        problemId: newProblem.id,
+      })),
+    });
+
     return res.status(201).json({
-      sucess: true,
-      message: 'Message Created Successfully',
+      success: true,
+      message: 'Problem created successfully',
       problem: newProblem,
     });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return res.status(500).json({
-      error: 'Error While Creating Problem',
+      success: false,
+      message: 'Internal Server Error while creating the problem',
     });
   }
 };
+
 
 export const getAllProblems = async (req, res) => {
   try {
