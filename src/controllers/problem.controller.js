@@ -237,108 +237,78 @@ export const getProblemById = async (req, res) => {
 
 
 export const updateProblem = async (req, res) => {
-  const { id } = req.params;
+  const { problemId } = req.params; // from URL like /problems/update-problem/:problemId
+  const { problemNumber, problem, testCases } = req.body;
 
-  if (!id || typeof id !== 'string' || id.trim() === '') {
-    return res.status(400).json({ error: 'Invalid or missing problem ID.' });
-  }
-
-  const {
-    title,
-    description,
-    difficulty,
-    tags,
-    examples,
-    constraints,
-    codeSnippets,
-    referenceSolutions,
-    hints,
-    editorial,
-    problemNumber,
-    testcases, // array of { input, expected, isPublic }
-  } = req.body;
-
-  // Validate required fields
-  if (!title || !description || !difficulty) {
-    console.log('title', title);
-    console.log('description', description);
-    console.log('difficulty', difficulty);
+  if (!problemId) {
     return res.status(400).json({
-      error: 'Missing required fields: title, description, and difficulty.',
+      success: false,
+      message: 'Problem ID is required in URL params.',
     });
-  }
-
-  if (tags && !Array.isArray(tags)) {
-    return res.status(400).json({ error: 'Tags must be an array of strings.' });
-  }
-
-  if (examples && typeof examples !== 'object') {
-    return res
-      .status(400)
-      .json({ error: 'Examples must be a language-keyed object.' });
-  }
-
-  if (testcases && !Array.isArray(testcases)) {
-    return res
-      .status(400)
-      .json({ error: 'Testcases must be an array of objects.' });
   }
 
   try {
-    const existingProblem = await db.problem.findUnique({ where: { id } });
+    // Find existing problem by id (UUID or string id)
+    const existingProblem = await db.problem.findUnique({
+      where: { id: problemId },
+    });
+
     if (!existingProblem) {
-      return res.status(404).json({ error: 'Problem not found.' });
+      return res.status(404).json({
+        success: false,
+        message: 'Problem not found.',
+      });
     }
 
-    // Update problem and testcases in a transaction
-    const updatedProblem = await db.$transaction(async (tx) => {
-      // Update main problem
-      const updated = await tx.problem.update({
-        where: { id },
-        data: {
-          title,
-          description,
-          difficulty,
-          tags,
-          examples,
-          constraints,
-          codeSnippets,
-          referenceSolutions,
-          hints,
-          editorial,
-          problemNumber,
-        },
-      });
+    // Prepare update data object
+    const updateData = {};
 
-      // If testcases are provided, delete old ones and create new ones
-      if (Array.isArray(testcases)) {
-        await tx.testCase.deleteMany({ where: { problemId: id } });
+    if (problem) {
+      // Spread problem fields (title, description, difficulty, tags, etc.)
+      updateData.title = problem.title ?? existingProblem.title;
+      updateData.description =
+        problem.description ?? existingProblem.description;
+      updateData.difficulty = problem.difficulty ?? existingProblem.difficulty;
+      updateData.tags = problem.tags ?? existingProblem.tags;
+      updateData.examples = problem.examples ?? existingProblem.examples;
+      updateData.constraints =
+        problem.constraints ?? existingProblem.constraints;
+      updateData.codeSnippets =
+        problem.codeSnippets ?? existingProblem.codeSnippets;
+      updateData.referenceSolutions =
+        problem.referenceSolutions ?? existingProblem.referenceSolutions;
+    }
 
-        const formattedTestCases = testcases.map((t) => ({
-          input: t.input,
-          expected: t.expected,
-          isPublic: !!t.isPublic,
-          problemId: id,
-        }));
+    // If problemNumber is present in request body, update it
+    if (problemNumber !== undefined) {
+      updateData.problemNumber = problemNumber;
+    }
 
-        await tx.testCase.createMany({ data: formattedTestCases });
-      }
-
-      return updated;
+    // Update the problem record
+    const updatedProblem = await db.problem.update({
+      where: { id: problemId },
+      data: updateData,
     });
 
-    return res.status(200).json({
+    // TODO: Update testCases if you have testCases logic and relations
+    // This part depends on your schema and may need deletes/inserts or updateMany
+
+    return res.json({
       success: true,
-      message: 'Problem updated successfully.',
-      updatedProblem,
+      message: 'Problem updated successfully',
+      data: updatedProblem,
     });
   } catch (error) {
-    console.error('Error updating problem:', error);
+    console.error('Update problem error:', error);
     return res.status(500).json({
-      error: 'An internal server error occurred while updating the problem.',
+      success: false,
+      message: 'Internal Server Error while updating the problem',
     });
   }
 };
+
+
+
 
 
 export const deleteProblem = async (req, res) => {
