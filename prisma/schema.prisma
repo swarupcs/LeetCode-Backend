@@ -53,9 +53,11 @@ model Problem {
   hints       String?
   editorial   String?
 
-  testcases          Json // 
+  //testcases          Json 
   codeSnippets       Json
   referenceSolutions Json
+
+  problemNumber   Int?      @unique // Optional + Unique
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -65,6 +67,25 @@ model Problem {
   submission Submission[]
   solvedBy   ProblemSolved[]
   problemsPlaylists ProblemInPlaylist[]
+  testCases TestCase[] 
+
+  @@map("Problems") // optional: map table name if needed
+}
+
+model TestCase {
+  id         String   @id @default(uuid())
+  input      String
+  expected   String
+  isPublic   Boolean  @default(false)
+  problemId  String
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relation to Problem
+  problem    Problem  @relation(fields: [problemId], references: [id], onDelete: Cascade)
+
+  @@index([problemId])
 }
 
 // enum Status{

@@ -139,9 +139,19 @@ exports.Prisma.ProblemScalarFieldEnum = {
   constraints: 'constraints',
   hints: 'hints',
   editorial: 'editorial',
-  testcases: 'testcases',
   codeSnippets: 'codeSnippets',
   referenceSolutions: 'referenceSolutions',
+  problemNumber: 'problemNumber',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.TestCaseScalarFieldEnum = {
+  id: 'id',
+  input: 'input',
+  expected: 'expected',
+  isPublic: 'isPublic',
+  problemId: 'problemId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -242,6 +252,7 @@ exports.Difficulty = exports.$Enums.Difficulty = {
 exports.Prisma.ModelName = {
   User: 'User',
   Problem: 'Problem',
+  TestCase: 'TestCase',
   Submission: 'Submission',
   TestCaseResult: 'TestCaseResult',
   ProblemSolved: 'ProblemSolved',
