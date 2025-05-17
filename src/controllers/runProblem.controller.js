@@ -82,7 +82,7 @@ export const runProblem = async (req, res) => {
 
 
 
-export const submitProblem; = async (req, res) => {
+export const submitProblem = async (req, res) => {
   try {
     const { source_code, language_id, problemId } = req.body;
     const userId = req.user.id;
