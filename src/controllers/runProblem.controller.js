@@ -98,6 +98,8 @@ export const submitProblem = async (req, res) => {
       orderBy: { isPublic: 'desc' }, // Optional: show public first
     });
 
+    console.log('testCases', testCases);
+
     if (!testCases || testCases.length === 0) {
       return res
         .status(404)
@@ -125,7 +127,7 @@ export const submitProblem = async (req, res) => {
     let allPassed = true;
     const detailedResults = results.map((result, i) => {
       const stdout = result.stdout?.trim();
-      const expected = expected_outputs[i]?.trim();
+      const expected = expected_outputs[i]?.trim() || ''; // Ensure expected is never null/undefined
       const passed = stdout === expected;
 
       if (!passed) allPassed = false;
@@ -135,7 +137,7 @@ export const submitProblem = async (req, res) => {
         testCase: i + 1,
         passed,
         stdout,
-        expected,
+        expected, // This will now always have at least an empty string
         stderr: result.stderr || null,
         compile_output: result.compile_output || null,
         status: result.status.description,
@@ -168,10 +170,10 @@ export const submitProblem = async (req, res) => {
     // 8. Save individual test case results
     const testCaseResults = detailedResults.map((result) => ({
       submissionId: submission.id,
-      testCaseId: result.testCaseId,
+      testCase: result.testCase,
       passed: result.passed,
-      stdout: result.stdout,
-      expected: result.expected,
+      stdout: result.stdout || '', // Ensure not null
+      expected: result.expected || '', // Ensure never null/undefined
       stderr: result.stderr,
       compileOutput: result.compile_output,
       status: result.status,
@@ -193,15 +195,20 @@ export const submitProblem = async (req, res) => {
     }
 
     // 10. Return the result
-    const submissionWithTestCases = await db.submission.findUnique({
+    const submissionWithResults = await db.submission.findUnique({
       where: { id: submission.id },
-      include: { testCases: true },
+      include: {
+        // The relation name in your schema is "testCases" not "testCaseResults"
+        testCases: true,
+        user: true,
+        problem: true,
+      },
     });
 
     return res.status(200).json({
       success: true,
       message: allPassed ? 'All test cases passed!' : 'Some test cases failed.',
-      submission: submissionWithTestCases,
+      submission: submissionWithResults,
     });
   } catch (error) {
     console.error('Error submitting problem:', error);
