@@ -123,25 +123,46 @@ export const getAllProblems = async (req, res) => {
           where: {
             userId: req.user.id,
           },
+          select: { id: true }, // Only to check existence
         },
       },
+      orderBy: {
+        problemNumber: 'asc', // Optional: sort by problem number
+      },
     });
-    console.log('problems', problems);
+
     if (!problems || problems.length === 0) {
-      return res.status(404).json({ error: 'Problems not found.' });
+      return res.status(404).json({ error: 'No problems found.' });
     }
+
+    // Map to include isSolved field
+    const formattedProblems = problems.map((problem) => ({
+      id: problem.id,
+      title: problem.title,
+      description: problem.description,
+      difficulty: problem.difficulty,
+      tags: problem.tags,
+      problemNumber: problem.problemNumber,
+      examples: problem.examples,
+      constraints: problem.constraints,
+      codeSnippets: problem.codeSnippets,
+      referenceSolutions: problem.referenceSolutions,
+      isSolved: problem.solvedBy.length > 0, // ✅ custom flag
+    }));
+
     return res.status(200).json({
       success: true,
       message: 'Problems fetched successfully',
-      problems,
+      problems: formattedProblems,
     });
   } catch (error) {
-    console.log(error);
+    console.error('Fetch problems error:', error);
     return res.status(500).json({
-      error: 'Error While Fetching Problems',
+      error: 'Error while fetching problems',
     });
   }
 };
+
 
 export const getProblemById = async (req, res) => {
   const { id } = req.params;
