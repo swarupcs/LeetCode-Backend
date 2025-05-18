@@ -144,3 +144,8 @@ export const check = async (req, res) => {
     });
   }
 };
+
+
+export const getUserDetails = async (req, res) => {
+  
+}

@@ -1727,6 +1727,7 @@ export namespace Prisma {
     id: string | null
     name: string | null
     email: string | null
+    username: string | null
     image: string | null
     role: $Enums.UserRole | null
     password: string | null
@@ -1738,6 +1739,7 @@ export namespace Prisma {
     id: string | null
     name: string | null
     email: string | null
+    username: string | null
     image: string | null
     role: $Enums.UserRole | null
     password: string | null
@@ -1749,6 +1751,7 @@ export namespace Prisma {
     id: number
     name: number
     email: number
+    username: number
     image: number
     role: number
     password: number
@@ -1762,6 +1765,7 @@ export namespace Prisma {
     id?: true
     name?: true
     email?: true
+    username?: true
     image?: true
     role?: true
     password?: true
@@ -1773,6 +1777,7 @@ export namespace Prisma {
     id?: true
     name?: true
     email?: true
+    username?: true
     image?: true
     role?: true
     password?: true
@@ -1784,6 +1789,7 @@ export namespace Prisma {
     id?: true
     name?: true
     email?: true
+    username?: true
     image?: true
     role?: true
     password?: true
@@ -1868,6 +1874,7 @@ export namespace Prisma {
     id: string
     name: string | null
     email: string
+    username: string | null
     image: string | null
     role: $Enums.UserRole
     password: string
@@ -1896,6 +1903,7 @@ export namespace Prisma {
     id?: boolean
     name?: boolean
     email?: boolean
+    username?: boolean
     image?: boolean
     role?: boolean
     password?: boolean
@@ -1912,6 +1920,7 @@ export namespace Prisma {
     id?: boolean
     name?: boolean
     email?: boolean
+    username?: boolean
     image?: boolean
     role?: boolean
     password?: boolean
@@ -1923,6 +1932,7 @@ export namespace Prisma {
     id?: boolean
     name?: boolean
     email?: boolean
+    username?: boolean
     image?: boolean
     role?: boolean
     password?: boolean
@@ -1934,6 +1944,7 @@ export namespace Prisma {
     id?: boolean
     name?: boolean
     email?: boolean
+    username?: boolean
     image?: boolean
     role?: boolean
     password?: boolean
@@ -1941,7 +1952,7 @@ export namespace Prisma {
     updatedAt?: boolean
   }
 
-  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "email" | "image" | "role" | "password" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "email" | "username" | "image" | "role" | "password" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
   export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     problems?: boolean | User$problemsArgs<ExtArgs>
     submission?: boolean | User$submissionArgs<ExtArgs>
@@ -1964,6 +1975,7 @@ export namespace Prisma {
       id: string
       name: string | null
       email: string
+      username: string | null
       image: string | null
       role: $Enums.UserRole
       password: string
@@ -2399,6 +2411,7 @@ export namespace Prisma {
     readonly id: FieldRef<"User", 'String'>
     readonly name: FieldRef<"User", 'String'>
     readonly email: FieldRef<"User", 'String'>
+    readonly username: FieldRef<"User", 'String'>
     readonly image: FieldRef<"User", 'String'>
     readonly role: FieldRef<"User", 'UserRole'>
     readonly password: FieldRef<"User", 'String'>
@@ -10966,6 +10979,7 @@ export namespace Prisma {
     id: 'id',
     name: 'name',
     email: 'email',
+    username: 'username',
     image: 'image',
     role: 'role',
     password: 'password',
@@ -11243,6 +11257,7 @@ export namespace Prisma {
     id?: StringFilter<"User"> | string
     name?: StringNullableFilter<"User"> | string | null
     email?: StringFilter<"User"> | string
+    username?: StringNullableFilter<"User"> | string | null
     image?: StringNullableFilter<"User"> | string | null
     role?: EnumUserRoleFilter<"User"> | $Enums.UserRole
     password?: StringFilter<"User"> | string
@@ -11258,6 +11273,7 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrderInput | SortOrder
     email?: SortOrder
+    username?: SortOrderInput | SortOrder
     image?: SortOrderInput | SortOrder
     role?: SortOrder
     password?: SortOrder
@@ -11272,6 +11288,7 @@ export namespace Prisma {
   export type UserWhereUniqueInput = Prisma.AtLeast<{
     id?: string
     email?: string
+    username?: string
     AND?: UserWhereInput | UserWhereInput[]
     OR?: UserWhereInput[]
     NOT?: UserWhereInput | UserWhereInput[]
@@ -11285,12 +11302,13 @@ export namespace Prisma {
     submission?: SubmissionListRelationFilter
     problemSolved?: ProblemSolvedListRelationFilter
     playlists?: PlaylistListRelationFilter
-  }, "id" | "email">
+  }, "id" | "email" | "username">
 
   export type UserOrderByWithAggregationInput = {
     id?: SortOrder
     name?: SortOrderInput | SortOrder
     email?: SortOrder
+    username?: SortOrderInput | SortOrder
     image?: SortOrderInput | SortOrder
     role?: SortOrder
     password?: SortOrder
@@ -11308,6 +11326,7 @@ export namespace Prisma {
     id?: StringWithAggregatesFilter<"User"> | string
     name?: StringNullableWithAggregatesFilter<"User"> | string | null
     email?: StringWithAggregatesFilter<"User"> | string
+    username?: StringNullableWithAggregatesFilter<"User"> | string | null
     image?: StringNullableWithAggregatesFilter<"User"> | string | null
     role?: EnumUserRoleWithAggregatesFilter<"User"> | $Enums.UserRole
     password?: StringWithAggregatesFilter<"User"> | string
@@ -11888,6 +11907,7 @@ export namespace Prisma {
     id?: string
     name?: string | null
     email: string
+    username?: string | null
     image?: string | null
     role?: $Enums.UserRole
     password: string
@@ -11903,6 +11923,7 @@ export namespace Prisma {
     id?: string
     name?: string | null
     email: string
+    username?: string | null
     image?: string | null
     role?: $Enums.UserRole
     password: string
@@ -11918,6 +11939,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: NullableStringFieldUpdateOperationsInput | string | null
     email?: StringFieldUpdateOperationsInput | string
+    username?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
     password?: StringFieldUpdateOperationsInput | string
@@ -11933,6 +11955,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: NullableStringFieldUpdateOperationsInput | string | null
     email?: StringFieldUpdateOperationsInput | string
+    username?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
     password?: StringFieldUpdateOperationsInput | string
@@ -11948,6 +11971,7 @@ export namespace Prisma {
     id?: string
     name?: string | null
     email: string
+    username?: string | null
     image?: string | null
     role?: $Enums.UserRole
     password: string
@@ -11959,6 +11983,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: NullableStringFieldUpdateOperationsInput | string | null
     email?: StringFieldUpdateOperationsInput | string
+    username?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
     password?: StringFieldUpdateOperationsInput | string
@@ -11970,6 +11995,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: NullableStringFieldUpdateOperationsInput | string | null
     email?: StringFieldUpdateOperationsInput | string
+    username?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
     password?: StringFieldUpdateOperationsInput | string
@@ -12690,6 +12716,7 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrder
     email?: SortOrder
+    username?: SortOrder
     image?: SortOrder
     role?: SortOrder
     password?: SortOrder
@@ -12701,6 +12728,7 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrder
     email?: SortOrder
+    username?: SortOrder
     image?: SortOrder
     role?: SortOrder
     password?: SortOrder
@@ -12712,6 +12740,7 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrder
     email?: SortOrder
+    username?: SortOrder
     image?: SortOrder
     role?: SortOrder
     password?: SortOrder
@@ -14371,6 +14400,7 @@ export namespace Prisma {
     id?: string
     name?: string | null
     email: string
+    username?: string | null
     image?: string | null
     role?: $Enums.UserRole
     password: string
@@ -14385,6 +14415,7 @@ export namespace Prisma {
     id?: string
     name?: string | null
     email: string
+    username?: string | null
     image?: string | null
     role?: $Enums.UserRole
     password: string
@@ -14535,6 +14566,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: NullableStringFieldUpdateOperationsInput | string | null
     email?: StringFieldUpdateOperationsInput | string
+    username?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
     password?: StringFieldUpdateOperationsInput | string
@@ -14549,6 +14581,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: NullableStringFieldUpdateOperationsInput | string | null
     email?: StringFieldUpdateOperationsInput | string
+    username?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
     password?: StringFieldUpdateOperationsInput | string
@@ -14751,6 +14784,7 @@ export namespace Prisma {
     id?: string
     name?: string | null
     email: string
+    username?: string | null
     image?: string | null
     role?: $Enums.UserRole
     password: string
@@ -14765,6 +14799,7 @@ export namespace Prisma {
     id?: string
     name?: string | null
     email: string
+    username?: string | null
     image?: string | null
     role?: $Enums.UserRole
     password: string
@@ -14882,6 +14917,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: NullableStringFieldUpdateOperationsInput | string | null
     email?: StringFieldUpdateOperationsInput | string
+    username?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
     password?: StringFieldUpdateOperationsInput | string
@@ -14896,6 +14932,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: NullableStringFieldUpdateOperationsInput | string | null
     email?: StringFieldUpdateOperationsInput | string
+    username?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
     password?: StringFieldUpdateOperationsInput | string
@@ -15082,6 +15119,7 @@ export namespace Prisma {
     id?: string
     name?: string | null
     email: string
+    username?: string | null
     image?: string | null
     role?: $Enums.UserRole
     password: string
@@ -15096,6 +15134,7 @@ export namespace Prisma {
     id?: string
     name?: string | null
     email: string
+    username?: string | null
     image?: string | null
     role?: $Enums.UserRole
     password: string
@@ -15173,6 +15212,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: NullableStringFieldUpdateOperationsInput | string | null
     email?: StringFieldUpdateOperationsInput | string
+    username?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
     password?: StringFieldUpdateOperationsInput | string
@@ -15187,6 +15227,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: NullableStringFieldUpdateOperationsInput | string | null
     email?: StringFieldUpdateOperationsInput | string
+    username?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
     password?: StringFieldUpdateOperationsInput | string
@@ -15278,6 +15319,7 @@ export namespace Prisma {
     id?: string
     name?: string | null
     email: string
+    username?: string | null
     image?: string | null
     role?: $Enums.UserRole
     password: string
@@ -15292,6 +15334,7 @@ export namespace Prisma {
     id?: string
     name?: string | null
     email: string
+    username?: string | null
     image?: string | null
     role?: $Enums.UserRole
     password: string
@@ -15338,6 +15381,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: NullableStringFieldUpdateOperationsInput | string | null
     email?: StringFieldUpdateOperationsInput | string
+    username?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
     password?: StringFieldUpdateOperationsInput | string
@@ -15352,6 +15396,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: NullableStringFieldUpdateOperationsInput | string | null
     email?: StringFieldUpdateOperationsInput | string
+    username?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
     password?: StringFieldUpdateOperationsInput | string
