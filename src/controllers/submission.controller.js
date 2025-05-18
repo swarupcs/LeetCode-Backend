@@ -19,6 +19,8 @@ export const getUserSubmissions = async (req, res) => {
         problem: {
           select: {
             title: true,
+            difficulty: true,
+            tags: true,
           },
         },
         testCases: {
@@ -36,9 +38,9 @@ export const getUserSubmissions = async (req, res) => {
         .status(200)
         .json({ message: 'No submissions found', submissions: [] });
     }
-    // Extract problem info from the first submission (since all share same problem)
-    const problemId = submissions[0].problemId;
-    const problemTitle = submissions[0].problem.title;
+
+    console.log("submissions", submissions);
+
 
 
 
@@ -55,18 +57,22 @@ const formatted = submissions.map((s) => {
 
   return {
     id: s.id,
+    problemName: s.problem.title,
+    problemId: s.problemId,
+    problemDifficulty: s.problem.difficulty,
+    tags: s.problem.tags,
     status: s.status,
     language: s.language,
     runtime: `${totalTime.toFixed(2)}ms`,
-    memory: `${totalMemory.toFixed(2)}MB`,
+    memory: `${totalMemory.toFixed(2)}KB`,
     date: format(new Date(s.createdAt), 'MMM d, yyyy'),
   };
 });
 
-    res.status(200).json({ problemId, problemTitle, submissions: formatted });
+    res.status(200).json({ success: true, message: 'Submissions fetched', submissions: formatted });
   } catch (err) {
     console.error('Failed to fetch submissions:', err);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ success: false, error: 'Internal Server Error' });
   }
 };
 
@@ -122,7 +128,7 @@ export const getUserSubmissionsForProblem = async (req, res) => {
         status: s.status,
         language: s.language,
         runtime: `${totalTime.toFixed(2)}ms`,
-        memory: `${totalMemory.toFixed(2)}MB`,
+        memory: `${totalMemory.toFixed(2)}KB`,
         date: format(new Date(s.createdAt), 'MMM d, yyyy'),
       };
     });
@@ -138,6 +144,8 @@ export const getUserSubmissionsForProblem = async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
+
+
 
 
 
