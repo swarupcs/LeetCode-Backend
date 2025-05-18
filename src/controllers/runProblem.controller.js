@@ -98,8 +98,6 @@ export const submitProblem = async (req, res) => {
       orderBy: { isPublic: 'desc' }, // Optional: show public first
     });
 
-    console.log('testCases', testCases);
-
     if (!testCases || testCases.length === 0) {
       return res
         .status(404)
@@ -107,7 +105,7 @@ export const submitProblem = async (req, res) => {
     }
 
     const stdin = testCases.map((tc) => tc.input);
-    const expected_outputs = testCases.map((tc) => tc.expectedOutput);
+    const expected_outputs = testCases.map((tc) => tc.expected);
 
     // 3. Prepare batch submission
     const submissions = stdin.map((input) => ({
@@ -137,12 +135,13 @@ export const submitProblem = async (req, res) => {
         testCase: i + 1,
         passed,
         stdout,
-        expected, // This will now always have at least an empty string
+        expected: testCases[i].isPublic ? expected : undefined, // Only include expected for public test cases
         stderr: result.stderr || null,
         compile_output: result.compile_output || null,
         status: result.status.description,
         memory: result.memory ? `${result.memory} KB` : undefined,
         time: result.time ? `${result.time} s` : undefined,
+        isPublic: testCases[i].isPublic,
       };
     });
 
@@ -166,6 +165,8 @@ export const submitProblem = async (req, res) => {
         time: JSON.stringify(detailedResults.map((r) => r.time)),
       },
     });
+    
+    console.log("submission", submission);
 
     // 8. Save individual test case results
     const testCaseResults = detailedResults.map((result) => ({
@@ -194,21 +195,70 @@ export const submitProblem = async (req, res) => {
       });
     }
 
-    // 10. Return the result
-    const submissionWithResults = await db.submission.findUnique({
-      where: { id: submission.id },
-      include: {
-        // The relation name in your schema is "testCases" not "testCaseResults"
-        testCases: true,
-        user: true,
-        problem: true,
-      },
+    // Calculate performance metrics - only total time and memory
+    const times = detailedResults
+      .map((r) => parseFloat(r.time?.replace(' s', '') || 0))
+      .filter((t) => !isNaN(t));
+
+    const memories = detailedResults
+      .map((r) => parseInt(r.memory?.replace(' KB', '') || 0))
+      .filter((m) => !isNaN(m));
+
+    const performanceMetrics = {
+      totalTime:
+        times.length > 0
+          ? `${times.reduce((a, b) => a + b, 0).toFixed(3)} s`
+          : undefined,
+      totalMemory:
+        memories.length > 0
+          ? `${memories.reduce((a, b) => a + b, 0)} KB`
+          : undefined,
+    };
+
+    // 10. Return a sanitized response to the client
+    const sanitizedResults = detailedResults.map((result) => {
+      // Only include necessary fields and hide expected outputs for non-public test cases
+      return {
+        testCase: result.testCase,
+        passed: result.passed,
+        status: result.status,
+        // Only include detailed information if test case is public or if it failed
+        ...(result.isPublic || !result.passed
+          ? {
+              stdout: result.stdout,
+              expected: result.isPublic ? result.expected : undefined,
+              stderr: result.stderr,
+              compileOutput: result.compile_output,
+            }
+          : {}),
+        memory: result.memory,
+        time: result.time,
+      };
     });
+
+    let count = 0;
+
+    const totalPassedTestCases = sanitizedResults.map((result) => {
+      if(result.passed == 'true') {
+        count = count+1;
+      }
+
+      return count;
+    })
+
+    console.log("sanitizedResults", sanitizedResults);
+    console.log('totalPassedTestCases', totalPassedTestCases);
 
     return res.status(200).json({
       success: true,
+      allPassedFlag: allPassed,
       message: allPassed ? 'All test cases passed!' : 'Some test cases failed.',
-      submission: submissionWithResults,
+      submission: {
+        language: getLanguageName(language_id),
+        status: allPassed ? 'Accepted' : 'Wrong Answer',
+        // testCaseResults: sanitizedResults,
+        performance: performanceMetrics,
+      },
     });
   } catch (error) {
     console.error('Error submitting problem:', error);
