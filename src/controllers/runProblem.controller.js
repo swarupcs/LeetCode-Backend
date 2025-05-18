@@ -165,8 +165,6 @@ export const submitProblem = async (req, res) => {
         time: JSON.stringify(detailedResults.map((r) => r.time)),
       },
     });
-    
-    console.log("submission", submission);
 
     // 8. Save individual test case results
     const testCaseResults = detailedResults.map((result) => ({
@@ -236,18 +234,11 @@ export const submitProblem = async (req, res) => {
       };
     });
 
-    let count = 0;
-
-    const totalPassedTestCases = sanitizedResults.map((result) => {
-      if(result.passed == 'true') {
-        count = count+1;
-      }
-
-      return count;
-    })
-
-    console.log("sanitizedResults", sanitizedResults);
-    console.log('totalPassedTestCases', totalPassedTestCases);
+    // Count passed test cases and get total
+    const passedTestCases = sanitizedResults.filter(
+      (result) => result.passed
+    ).length;
+    const totalTestCases = sanitizedResults.length;
 
     return res.status(200).json({
       success: true,
@@ -256,8 +247,8 @@ export const submitProblem = async (req, res) => {
       submission: {
         language: getLanguageName(language_id),
         status: allPassed ? 'Accepted' : 'Wrong Answer',
-        // testCaseResults: sanitizedResults,
         performance: performanceMetrics,
+        testCasesPassed: `${passedTestCases}/${totalTestCases}`,
       },
     });
   } catch (error) {
