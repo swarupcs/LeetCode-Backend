@@ -3,6 +3,7 @@ import { db } from '../libs/db.js';
 import { UserRole } from '../generated/prisma/index.js';
 import jwt from 'jsonwebtoken';
 
+
 export const register = async (req, res) => {
   const { email, password, name } = req.body;
 
@@ -147,5 +148,47 @@ export const check = async (req, res) => {
 
 
 export const getUserDetails = async (req, res) => {
-  
+  const userId = req.user.id;
+
+  try {
+  const userDetails = await db.user.findUnique({
+    where: {
+      id: userId,
+    },
+    select: {
+      id: true,
+      email: true,
+      username: true,
+      name: true,
+      role: true,
+      image: true,
+      createdAt: true,
+    }
+
+
+  })
+
+  console.log('userDetails', userDetails);
+
+  res.status(200).json({
+    success: true,
+    message: 'User details fetched successfully',
+    user: {
+      id: userDetails.id,
+      email: userDetails.email,
+      username: userDetails.username,
+      name: userDetails.name,
+      role: userDetails.role,
+      image: userDetails.image,
+      createdAt: userDetails.createdAt,
+    },
+  });
+    
+  } catch (error) {
+    
+  }
+
+
+
+
 }
