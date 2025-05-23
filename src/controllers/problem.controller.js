@@ -231,14 +231,14 @@ export const getProblemById = async (req, res) => {
             expected: true,
           },
         },
-        solvedBy: {
-          where: {
-            userId: req.user.id,
-          },
-          select: {
-            id: true,
-          },
-        },
+        // solvedBy: {
+        //   where: {
+        //     userId: req.user.id,
+        //   },
+        //   select: {
+        //     id: true,
+        //   },
+        // },
       },
     });
 
@@ -251,7 +251,7 @@ export const getProblemById = async (req, res) => {
       message: 'Fetched problem successfully',
       problem: {
         ...problem,
-        isSolved: problem.solvedBy.length > 0,
+        // isSolved: problem.solvedBy.length > 0,
       },
     });
   } catch (error) {

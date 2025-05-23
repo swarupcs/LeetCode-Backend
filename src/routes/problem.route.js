@@ -20,7 +20,7 @@ problemRoutes.post(
 
 problemRoutes.post('/get-all-problems', getAllProblems);
 
-problemRoutes.get('/get-problem/:id', authMiddleware, getProblemById);
+problemRoutes.get('/get-problem/:id', getProblemById);
 
 problemRoutes.put(
   '/update-problem/:problemId',
