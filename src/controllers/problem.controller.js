@@ -150,22 +150,21 @@ export const createProblem = async (req, res) => {
 
 export const getAllProblems = async (req, res) => {
   try {
+    const userId = req.body?.userId || null;
+
     const problems = await db.problem.findMany({
       orderBy: {
-        problemNumber: 'asc', // Optional: shows in order of problemNumber if available
+        problemNumber: 'asc',
       },
       include: {
         solvedBy: {
-          where: {
-            userId: req.user.id,
-          },
           select: {
-            id: true, // You can customize what fields you want from ProblemSolved
+            userId: true,
           },
         },
         testCases: {
           where: {
-            isPublic: true, // Optionally include only public test cases
+            isPublic: true,
           },
           select: {
             input: true,
@@ -179,10 +178,29 @@ export const getAllProblems = async (req, res) => {
       return res.status(404).json({ error: 'Problems not found.' });
     }
 
+    // console.log("problems", problems);
+
+    const problemsWithSolvedFlag = problems.map((problem) => {
+
+      console.log("problem.solvedBy", problem.solvedBy);
+      console.log("userId", userId);
+      const isSolved = userId
+        ? problem.solvedBy.some((entry) => entry.userId === userId)
+        : false;
+
+      return {
+        ...problem,
+        isSolved,
+        solvedBy: undefined, // Clean up the response
+      };
+    });
+
+    // console.log('problemsWithSolvedFlag', problemsWithSolvedFlag);
+
     return res.status(200).json({
       success: true,
       message: 'Problems fetched successfully',
-      problems,
+      problems: problemsWithSolvedFlag,
     });
   } catch (error) {
     console.error('Error fetching problems:', error);
@@ -191,6 +209,7 @@ export const getAllProblems = async (req, res) => {
     });
   }
 };
+
 
 
 
