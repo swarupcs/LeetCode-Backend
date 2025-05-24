@@ -32,18 +32,56 @@ export const getAllSheetDetails = async (req, res) => {
         userId: req.user.id,
       },
       include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            image: true,
+          },
+        },
         problems: {
           include: {
-            problem: true,
+            problem: {
+              select: {
+                id: true,
+                title: true,
+                problemNumber: true,
+                difficulty: true,
+                tags: true,
+              },
+            },
           },
         },
       },
     });
 
+    // Post-process to add extra fields
+    const processedSheets = sdeSheets.map((sheet) => {
+      const totalProblems = sheet.problems.length;
+
+      // Flatten all tags and remove duplicates
+      const allTags = Array.from(
+        new Set(sheet.problems.flatMap((p) => p.problem.tags || []))
+      );
+
+      // Get unique difficulties
+      const allDifficulties = Array.from(
+        new Set(sheet.problems.map((p) => p.problem.difficulty))
+      );
+
+      return {
+        ...sheet,
+        totalProblems,
+        allTags,
+        allDifficulties,
+      };
+    });
+
     res.status(200).json({
       success: true,
       message: 'Sheets fetched successfully',
-      sdeSheets,
+      sdeSheets: processedSheets,
     });
   } catch (error) {
     console.error('Error fetching sheets:', error);
@@ -54,35 +92,71 @@ export const getAllSheetDetails = async (req, res) => {
 export const getIndividualSheetDetails = async (req, res) => {
   const { sheetId } = req.params;
 
-  console.log("sheetId", sheetId);
+  console.log('sheetId', sheetId);
   try {
-    const sdeSheets = await db.Sheet.findUnique({
+    const sheet = await db.Sheet.findFirst({
       where: {
         id: sheetId,
         userId: req.user.id,
       },
       include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            image: true,
+          },
+        },
         problems: {
           include: {
-            problem: true,
+            problem: {
+              select: {
+                id: true,
+                title: true,
+                problemNumber: true,
+                difficulty: true,
+                tags: true,
+              },
+            },
           },
         },
       },
     });
 
-    if (!sdeSheets) {
+    if (!sheet) {
       return res.status(404).json({ error: 'Sheet not found' });
     }
+
+    const totalProblems = sheet.problems.length;
+
+    const allTags = Array.from(
+      new Set(sheet.problems.flatMap((p) => p.problem.tags || []))
+    );
+
+    const allDifficulties = Array.from(
+      new Set(sheet.problems.map((p) => p.problem.difficulty))
+    );
+
+    // Combine processed data
+    const processedSheet = {
+      ...sheet,
+      totalProblems,
+      allTags,
+      allDifficulties,
+    };
+
     res.status(200).json({
       success: true,
       message: 'Sheet fetched successfully',
-      sdeSheets,
+      sdeSheet: processedSheet,
     });
   } catch (error) {
-    console.error('Error fetching sheets:', error);
-    res.status(500).json({ error: 'Failed to fetch sheets' });
+    console.error('Error fetching sheet:', error);
+    res.status(500).json({ error: 'Failed to fetch sheet' });
   }
 };
+
 
 export const addProblemToSheet = async (req, res) => {
   const { sheetId } = req.params;
