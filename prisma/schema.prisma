@@ -39,7 +39,7 @@ model User {
   problems      Problem[]
   submission    Submission[]
   problemSolved ProblemSolved[]
-  playlists Playlist[]
+  sheets Sheet[]
 }
 
 /*
@@ -70,7 +70,7 @@ model User {
   problems      Problem[]
   submission    Submission[]
   problemSolved ProblemSolved[]
-  playlists     Playlist[]
+  sheets     Sheet[]
 }
 
 
@@ -101,7 +101,7 @@ model Problem {
   user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   submission Submission[]
   solvedBy   ProblemSolved[]
-  problemsPlaylists ProblemInPlaylist[]
+  problemSheets ProblemInSheet[]
   testCases TestCase[] 
 
   @@map("Problems") // optional: map table name if needed
@@ -185,7 +185,7 @@ model ProblemSolved {
   @@unique([userId, problemId])
 }
 
-model Playlist{
+model Sheet{
    id        String   @id @default(uuid())
    name  String
    description String?
@@ -194,24 +194,24 @@ model Playlist{
     createdAt DateTime @default(now())
    updatedAt DateTime @updatedAt
  
-   problems  ProblemInPlaylist[]
+   problems  ProblemInSheet[]
  
    user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
  
-   @@unique([name , userId]) // unique playlist names per user
+   @@unique([name , userId]) // unique Sheet names per user
  }
  
  
- model ProblemInPlaylist{
+ model ProblemInSheet{
    id        String   @id @default(uuid())
-   playListId  String
+   sheetId  String
    problemId  String
      createdAt DateTime @default(now())
    updatedAt DateTime @updatedAt
  
-   playlist  Playlist @relation(fields: [playListId] , references: [id] , onDelete: Cascade)
+   Sheet  Sheet @relation(fields: [sheetId] , references: [id] , onDelete: Cascade)
    problem Problem @relation(fields: [problemId] , references: [id] , onDelete: Cascade)
  
-   @@unique([playListId , problemId])
+   @@unique([sheetId , problemId])
  
  }

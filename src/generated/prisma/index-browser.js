@@ -198,7 +198,7 @@ exports.Prisma.ProblemSolvedScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
-exports.Prisma.PlaylistScalarFieldEnum = {
+exports.Prisma.SheetScalarFieldEnum = {
   id: 'id',
   name: 'name',
   description: 'description',
@@ -207,9 +207,9 @@ exports.Prisma.PlaylistScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
-exports.Prisma.ProblemInPlaylistScalarFieldEnum = {
+exports.Prisma.ProblemInSheetScalarFieldEnum = {
   id: 'id',
-  playListId: 'playListId',
+  sheetId: 'sheetId',
   problemId: 'problemId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -257,8 +257,8 @@ exports.Prisma.ModelName = {
   Submission: 'Submission',
   TestCaseResult: 'TestCaseResult',
   ProblemSolved: 'ProblemSolved',
-  Playlist: 'Playlist',
-  ProblemInPlaylist: 'ProblemInPlaylist'
+  Sheet: 'Sheet',
+  ProblemInSheet: 'ProblemInSheet'
 };
 
 /**

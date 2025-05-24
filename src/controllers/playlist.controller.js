@@ -1,12 +1,12 @@
 import { db } from '../libs/db.js';
 
-export const createPlaylist = async (req, res) => {
+export const createSheet = async (req, res) => {
   try {
     const { name, description } = req.body;
 
     const userId = req.user.id;
 
-    const playList = await db.playlist.create({
+    const sdeSheet = await db.Sheet.create({
       data: {
         name,
         description,
@@ -16,18 +16,18 @@ export const createPlaylist = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'Playlist created successfully',
-      playList,
+      message: 'Problem Sheet created successfully',
+      sdeSheet,
     });
   } catch (error) {
-    console.error('Error creating playlist:', error);
-    res.status(500).json({ error: 'Failed to create playlist' });
+    console.error('Error creating Problem Sheet:', error);
+    res.status(500).json({ error: 'Failed to create Problem Sheet' });
   }
 };
 
-export const getAllListDetails = async (req, res) => {
+export const getAllSheetDetails = async (req, res) => {
   try {
-    const playlists = await db.playlist.findMany({
+    const sdeSheets = await db.Sheet.findMany({
       where: {
         userId: req.user.id,
       },
@@ -42,21 +42,21 @@ export const getAllListDetails = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'Playlist fetched successfully',
-      playlists,
+      message: 'Sheets fetched successfully',
+      sdeSheets,
     });
   } catch (error) {
-    console.error('Error fetching playlist:', error);
-    res.status(500).json({ error: 'Failed to fetch playlist' });
+    console.error('Error fetching sheets:', error);
+    res.status(500).json({ error: 'Failed to fetch sheets' });
   }
 };
 
-export const getPlayListDetails = async (req, res) => {
+export const getIndividualSheetDetails = async (req, res) => {
   const { sheetId } = req.params;
 
   console.log("sheetId", sheetId);
   try {
-    const playlist = await db.playlist.findUnique({
+    const sdeSheets = await db.Sheet.findUnique({
       where: {
         id: sheetId,
         userId: req.user.id,
@@ -70,17 +70,17 @@ export const getPlayListDetails = async (req, res) => {
       },
     });
 
-    if (!playlist) {
-      return res.status(404).json({ error: 'Playlist not found' });
+    if (!sdeSheets) {
+      return res.status(404).json({ error: 'Sheet not found' });
     }
     res.status(200).json({
       success: true,
-      message: 'Playlist fetched successfully',
-      playlist,
+      message: 'Sheet fetched successfully',
+      sdeSheets,
     });
   } catch (error) {
-    console.error('Error fetching playlist:', error);
-    res.status(500).json({ error: 'Failed to fetch playlist' });
+    console.error('Error fetching sheets:', error);
+    res.status(500).json({ error: 'Failed to fetch sheets' });
   }
 };
 

@@ -2,20 +2,20 @@ import express from 'express';
 import { authMiddleware } from '../middleware/auth.middleware.js';
 import {
   addProblemToPlaylist,
-  createPlaylist,
+  createSheet,
   deletePlaylist,
-  getAllListDetails,
-  getPlayListDetails,
+  getAllSheetDetails,
+  getIndividualSheetDetails,
   removeProblemFromPlaylist,
 } from '../controllers/playlist.controller.js';
 
 const sheetsRoutes = express.Router();
 
-sheetsRoutes.get('/', authMiddleware, getAllListDetails);
+sheetsRoutes.get('/', authMiddleware, getAllSheetDetails);
 
-sheetsRoutes.get('/:sheetId', authMiddleware, getPlayListDetails);
+sheetsRoutes.get('/:sheetId', authMiddleware, getIndividualSheetDetails);
 
-sheetsRoutes.post('/createSheet', authMiddleware, createPlaylist);
+sheetsRoutes.post('/createSheet', authMiddleware, createSheet);
 
 sheetsRoutes.post(
   '/:sheetId/addProblem',
