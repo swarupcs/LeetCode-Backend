@@ -120,7 +120,7 @@ export const addProblemToSheet = async (req, res) => {
   }
 };
 
-export const deletePlaylist = async (req, res) => {
+export const deleteSheet = async (req, res) => {
   const { sheetId } = req.params;
 
   try {
@@ -141,16 +141,19 @@ export const deletePlaylist = async (req, res) => {
   }
 };
 
-export const removeProblemFromPlaylist = async (req, res) => {
+export const removeProblemFromSheet = async (req, res) => {
   const { sheetId } = req.params;
   const { problemIds } = req.body;
+
+  console.log("sheetId", sheetId);
+  console.log("problemIds", problemIds);
 
   try {
     if (!Array.isArray(problemIds) || problemIds.length === 0) {
       return res.status(400).json({ error: 'Invalid or missing problemsId' });
     }
 
-    const deletedProblem = await db.problemsInPlaylist.deleteMany({
+    const deletedProblem = await db.ProblemInSheet.deleteMany({
       where: {
         sheetId,
         problemId: {
@@ -161,11 +164,11 @@ export const removeProblemFromPlaylist = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'Problem removed from playlist successfully',
+      message: 'Problem removed from sheet successfully',
       deletedProblem,
     });
   } catch (error) {
-    console.error('Error removing problem from playlist:', error.message);
-    res.status(500).json({ error: 'Failed to remove problem from playlist' });
+    console.error('Error removing problem from sheet:', error.message);
+    res.status(500).json({ error: 'Failed to remove problem from sheet' });
   }
 };

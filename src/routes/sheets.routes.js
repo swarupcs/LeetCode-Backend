@@ -3,10 +3,10 @@ import { authMiddleware } from '../middleware/auth.middleware.js';
 import {
   addProblemToSheet,
   createSheet,
-  deletePlaylist,
+  deleteSheet,
   getAllSheetDetails,
   getIndividualSheetDetails,
-  removeProblemFromPlaylist,
+  removeProblemFromSheet,
 } from '../controllers/playlist.controller.js';
 
 const sheetsRoutes = express.Router();
@@ -19,12 +19,12 @@ sheetsRoutes.post('/createSheet', authMiddleware, createSheet);
 
 sheetsRoutes.post('/:sheetId/addProblem', authMiddleware, addProblemToSheet);
 
-sheetsRoutes.delete('/:sheetId', authMiddleware, deletePlaylist);
+sheetsRoutes.delete('/:sheetId', authMiddleware, deleteSheet);
 
 sheetsRoutes.delete(
   '/:sheetId/removeProblem',
   authMiddleware,
-  removeProblemFromPlaylist
+  removeProblemFromSheet
 );
 
 export default sheetsRoutes;
