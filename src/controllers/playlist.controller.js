@@ -124,7 +124,7 @@ export const deletePlaylist = async (req, res) => {
   const { sheetId } = req.params;
 
   try {
-    const deletedPlaylist = await db.playlist.delete({
+    const deleteSheet = await db.Sheet.delete({
       where: {
         id: sheetId,
       },
@@ -132,12 +132,12 @@ export const deletePlaylist = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'Playlist deleted successfully',
-      deletedPlaylist,
+      message: 'Sheet deleted successfully',
+      deleteSheet,
     });
   } catch (error) {
-    console.error('Error deleting playlist:', error.message);
-    res.status(500).json({ error: 'Failed to delete playlist' });
+    console.error('Error deleting Sheet:', error.message);
+    res.status(500).json({ error: 'Failed to delete Sheet' });
   }
 };
 
