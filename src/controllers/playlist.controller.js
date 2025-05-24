@@ -84,9 +84,12 @@ export const getIndividualSheetDetails = async (req, res) => {
   }
 };
 
-export const addProblemToPlaylist = async (req, res) => {
+export const addProblemToSheet = async (req, res) => {
   const { sheetId } = req.params;
   const { problemIds } = req.body;
+
+  console.log("sheetId", sheetId);
+  console.log("problemIds", problemIds);
 
   try {
     if (!Array.isArray(problemIds) || problemIds.length === 0) {
@@ -94,21 +97,26 @@ export const addProblemToPlaylist = async (req, res) => {
     }
 
     // Create records fro each problems in the playlist
-    const problemsInPlaylist = await db.problemsInPlaylist.createMany({
+    const problemsInSheet = await db.ProblemInSheet.createMany({
       data: problemIds.map((problemId) => ({
+
         sheetId,
         problemId,
       })),
     });
 
+    
+
+    console.log("problemsInSheet", problemsInSheet);
+
     res.status(201).json({
       success: true,
-      message: 'Problems added to playlist successfully',
-      problemsInPlaylist,
+      message: 'Problems added to Sheet successfully',
+      problemsInSheet,
     });
   } catch (error) {
-    console.error('Error Adding problem in  playlist:', error);
-    res.status(500).json({ error: 'Failed to adding problem in playlist' });
+    console.error('Error Adding problem in  Sheet:', error);
+    res.status(500).json({ error: 'Failed to adding problem in Sheet' });
   }
 };
 

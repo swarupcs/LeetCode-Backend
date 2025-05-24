@@ -1,7 +1,7 @@
 import express from 'express';
 import { authMiddleware } from '../middleware/auth.middleware.js';
 import {
-  addProblemToPlaylist,
+  addProblemToSheet,
   createSheet,
   deletePlaylist,
   getAllSheetDetails,
@@ -17,11 +17,7 @@ sheetsRoutes.get('/:sheetId', authMiddleware, getIndividualSheetDetails);
 
 sheetsRoutes.post('/createSheet', authMiddleware, createSheet);
 
-sheetsRoutes.post(
-  '/:sheetId/addProblem',
-  authMiddleware,
-  addProblemToPlaylist
-);
+sheetsRoutes.post('/:sheetId/addProblem', authMiddleware, addProblemToSheet);
 
 sheetsRoutes.delete('/:sheetId', authMiddleware, deletePlaylist);
 
