@@ -52,11 +52,13 @@ export const getAllListDetails = async (req, res) => {
 };
 
 export const getPlayListDetails = async (req, res) => {
-  const { playlistId } = req.params;
+  const { sheetId } = req.params;
+
+  console.log("sheetId", sheetId);
   try {
     const playlist = await db.playlist.findUnique({
       where: {
-        id: playlistId,
+        id: sheetId,
         userId: req.user.id,
       },
       include: {
@@ -83,7 +85,7 @@ export const getPlayListDetails = async (req, res) => {
 };
 
 export const addProblemToPlaylist = async (req, res) => {
-  const { playlistId } = req.params;
+  const { sheetId } = req.params;
   const { problemIds } = req.body;
 
   try {
@@ -94,7 +96,7 @@ export const addProblemToPlaylist = async (req, res) => {
     // Create records fro each problems in the playlist
     const problemsInPlaylist = await db.problemsInPlaylist.createMany({
       data: problemIds.map((problemId) => ({
-        playlistId,
+        sheetId,
         problemId,
       })),
     });
@@ -111,12 +113,12 @@ export const addProblemToPlaylist = async (req, res) => {
 };
 
 export const deletePlaylist = async (req, res) => {
-  const { playlistId } = req.params;
+  const { sheetId } = req.params;
 
   try {
     const deletedPlaylist = await db.playlist.delete({
       where: {
-        id: playlistId,
+        id: sheetId,
       },
     });
 
@@ -132,7 +134,7 @@ export const deletePlaylist = async (req, res) => {
 };
 
 export const removeProblemFromPlaylist = async (req, res) => {
-  const { playlistId } = req.params;
+  const { sheetId } = req.params;
   const { problemIds } = req.body;
 
   try {
@@ -142,7 +144,7 @@ export const removeProblemFromPlaylist = async (req, res) => {
 
     const deletedProblem = await db.problemsInPlaylist.deleteMany({
       where: {
-        playlistId,
+        sheetId,
         problemId: {
           in: problemIds,
         },
