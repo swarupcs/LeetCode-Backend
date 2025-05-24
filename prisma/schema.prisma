@@ -29,104 +29,97 @@ model User {
   id        String   @id @default(uuid())
   name      String?
   email     String   @unique
-  username  String?   @unique
-  image     String?
-  role      UserRole @default(USER)
-  password  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  problems      Problem[]
-  submission    Submission[]
-  problemSolved ProblemSolved[]
-  sheets Sheet[]
-}
-
-/*
-model User {
-  id        String   @id @default(uuid())
-  name      String?
-  email     String   @unique
   username  String?  @unique
-  phoneNumber String?
   image     String?
-  bio       String?
-  location  String?
-  githubUrl String?
-  website   String?
-
   role      UserRole @default(USER)
   password  String
-
-  isVerified         Boolean   @default(false)
-  verifyToken        String?
-  verifyTokenExpiry  DateTime?
-  resetPasswordToken String?
-  resetTokenExpiry   DateTime?
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   problems      Problem[]
   submission    Submission[]
   problemSolved ProblemSolved[]
-  sheets     Sheet[]
+  sheets        Sheet[]
 }
 
-
-*/
+/**
+ * model User {
+ * id        String   @id @default(uuid())
+ * name      String?
+ * email     String   @unique
+ * username  String?  @unique
+ * phoneNumber String?
+ * image     String?
+ * bio       String?
+ * location  String?
+ * githubUrl String?
+ * website   String?
+ * role      UserRole @default(USER)
+ * password  String
+ * isVerified         Boolean   @default(false)
+ * verifyToken        String?
+ * verifyTokenExpiry  DateTime?
+ * resetPasswordToken String?
+ * resetTokenExpiry   DateTime?
+ * createdAt DateTime @default(now())
+ * updatedAt DateTime @updatedAt
+ * problems      Problem[]
+ * submission    Submission[]
+ * problemSolved ProblemSolved[]
+ * sheets     Sheet[]
+ * }
+ */
 
 model Problem {
-  id          String     @id @default(uuid())
-  title       String
-  problemNumber   Int?      @unique // Optional + Unique
-  description String
-  difficulty  Difficulty
-  constraints String
-  tags        String[] // ["tag1", "tag2", "tag3"]
-  userId      String
-  examples    Json
-  hints       String?
-  editorial   String?
+  id            String     @id @default(uuid())
+  title         String
+  problemNumber Int?       @unique // Optional + Unique
+  description   String
+  difficulty    Difficulty
+  constraints   String
+  tags          String[] // ["tag1", "tag2", "tag3"]
+  userId        String
+  examples      Json
+  hints         String?
+  editorial     String?
 
   //testcases          Json 
   codeSnippets       Json
   referenceSolutions Json
 
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   //  Relationship
-  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  submission Submission[]
-  solvedBy   ProblemSolved[]
+  user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  submission    Submission[]
+  solvedBy      ProblemSolved[]
   problemSheets ProblemInSheet[]
-  testCases TestCase[] 
+  testCases     TestCase[]
 
   @@map("Problems") // optional: map table name if needed
 }
 
 model TestCase {
-  id         String   @id @default(uuid())
-  input      String
-  expected   String
-  isPublic   Boolean  @default(false)
-  problemId  String
+  id        String  @id @default(uuid())
+  input     String
+  expected  String
+  isPublic  Boolean @default(false)
+  problemId String
 
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relation to Problem
-  problem    Problem  @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
 
   @@index([problemId])
 }
 
 // enum Status{
- //   ACCEPTED
- //   WORNG_ANSWER
- // }
+//   ACCEPTED
+//   WORNG_ANSWER
+// }
 
 model Submission {
   id            String  @id @default(uuid())
@@ -185,33 +178,31 @@ model ProblemSolved {
   @@unique([userId, problemId])
 }
 
-model Sheet{
-   id        String   @id @default(uuid())
-   name  String
-   description String?
-   userId  String
- 
-    createdAt DateTime @default(now())
-   updatedAt DateTime @updatedAt
- 
-   problems  ProblemInSheet[]
- 
-   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
- 
-   @@unique([name , userId]) // unique Sheet names per user
- }
- 
- 
- model ProblemInSheet{
-   id        String   @id @default(uuid())
-   sheetId  String
-   problemId  String
-     createdAt DateTime @default(now())
-   updatedAt DateTime @updatedAt
- 
-   Sheet  Sheet @relation(fields: [sheetId] , references: [id] , onDelete: Cascade)
-   problem Problem @relation(fields: [problemId] , references: [id] , onDelete: Cascade)
- 
-   @@unique([sheetId , problemId])
- 
- }
+model Sheet {
+  id          String  @id @default(uuid())
+  name        String
+  description String?
+  userId      String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  problems ProblemInSheet[]
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([name, userId]) // unique Sheet names per user
+}
+
+model ProblemInSheet {
+  id        String   @id @default(uuid())
+  sheetId   String
+  problemId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  Sheet   Sheet   @relation(fields: [sheetId], references: [id], onDelete: Cascade)
+  problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+
+  @@unique([sheetId, problemId])
+}

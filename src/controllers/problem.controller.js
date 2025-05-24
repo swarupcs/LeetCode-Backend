@@ -189,9 +189,16 @@ export const getAllProblems = async (req, res) => {
         : false;
 
       return {
-        ...problem,
+        id: problem.id,
         isSolved,
-        solvedBy: undefined, // Clean up the response
+        problemNumber: problem.problemNumber,
+        tags: problem.tags,
+        title: problem.title,
+        updatedAt: problem.updatedAt,
+        createdAt: problem.createdAt,
+        userId: problem.userId,
+        description: problem.description,
+        difficulty: problem.difficulty,
       };
     });
 
