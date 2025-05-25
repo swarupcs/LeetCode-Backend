@@ -7,6 +7,7 @@ import {
   getAllSheetDetails,
   getIndividualSheetDetails,
   removeProblemFromSheet,
+  updateProblemsInSheet,
 } from '../controllers/playlist.controller.js';
 
 const sheetsRoutes = express.Router();
@@ -25,6 +26,12 @@ sheetsRoutes.delete(
   '/:sheetId/removeProblem',
   authMiddleware,
   removeProblemFromSheet
+);
+
+sheetsRoutes.post(
+  '/:sheetId/updateProblems',
+  authMiddleware,
+  updateProblemsInSheet
 );
 
 export default sheetsRoutes;

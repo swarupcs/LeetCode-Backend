@@ -246,3 +246,49 @@ export const removeProblemFromSheet = async (req, res) => {
     res.status(500).json({ error: 'Failed to remove problem from sheet' });
   }
 };
+
+
+export const updateProblemsInSheet = async (req, res) => {
+  const { sheetId } = req.params;
+  const { problemIds } = req.body;
+
+  console.log('sheetId:', sheetId);
+  console.log('problemIds:', problemIds);
+
+  try {
+    if (!Array.isArray(problemIds)) {
+      return res.status(400).json({ error: 'Invalid or missing problemsId' });
+    }
+
+    // Delete existing problems in the sheet
+    await db.ProblemInSheet.deleteMany({
+      where: { sheetId },
+    });
+
+    // If the new problemIds array is empty, we’re done
+    if (problemIds.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: 'Sheet problems cleared successfully',
+        problemsInSheet: [],
+      });
+    }
+
+    // Insert the new set of problems
+    const problemsInSheet = await db.ProblemInSheet.createMany({
+      data: problemIds.map((problemId) => ({
+        sheetId,
+        problemId,
+      })),
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Sheet problems updated successfully',
+      problemsInSheet,
+    });
+  } catch (error) {
+    console.error('Error updating problems in sheet:', error.message);
+    res.status(500).json({ error: 'Failed to update problems in sheet' });
+  }
+};
