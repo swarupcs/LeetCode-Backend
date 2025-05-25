@@ -4,7 +4,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "nodemon src/index.js"
+    "dev": "nodemon src/app.js"
   },
   "keywords": [],
   "author": "",
@@ -21,5 +21,9 @@
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "prisma": "^6.6.0"
+  },
+  "devDependencies": {
+    "@vendia/serverless-express": "^4.12.6",
+    "serverless-offline": "^14.4.0"
   }
 }
