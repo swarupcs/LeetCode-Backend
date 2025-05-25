@@ -5,8 +5,9 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
+  provider      = "prisma-client-js"
+  output        = "../src/generated/prisma"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
 datasource db {
@@ -29,6 +30,7 @@ model User {
   id        String   @id @default(uuid())
   name      String?
   email     String   @unique
+  username  String?  @unique
   image     String?
   role      UserRole @default(USER)
   password  String
@@ -38,22 +40,51 @@ model User {
   problems      Problem[]
   submission    Submission[]
   problemSolved ProblemSolved[]
-  playlists     Playlist[]
+  sheets        Sheet[]
 }
 
-model Problem {
-  id          String     @id @default(uuid())
-  title       String
-  description String
-  difficulty  Difficulty
-  tags        String[] // ["tag1", "tag2", "tag3"]
-  userId      String
-  examples    Json
-  constraints String
-  hints       String?
-  editorial   String?
+/**
+ * model User {
+ * id        String   @id @default(uuid())
+ * name      String?
+ * email     String   @unique
+ * username  String?  @unique
+ * phoneNumber String?
+ * image     String?
+ * bio       String?
+ * location  String?
+ * githubUrl String?
+ * website   String?
+ * role      UserRole @default(USER)
+ * password  String
+ * isVerified         Boolean   @default(false)
+ * verifyToken        String?
+ * verifyTokenExpiry  DateTime?
+ * resetPasswordToken String?
+ * resetTokenExpiry   DateTime?
+ * createdAt DateTime @default(now())
+ * updatedAt DateTime @updatedAt
+ * problems      Problem[]
+ * submission    Submission[]
+ * problemSolved ProblemSolved[]
+ * sheets     Sheet[]
+ * }
+ */
 
-  testcases          Json // 
+model Problem {
+  id            String     @id @default(uuid())
+  title         String
+  problemNumber Int?       @unique // Optional + Unique
+  description   String
+  difficulty    Difficulty
+  constraints   String
+  tags          String[] // ["tag1", "tag2", "tag3"]
+  userId        String
+  examples      Json
+  hints         String?
+  editorial     String?
+
+  //testcases          Json 
   codeSnippets       Json
   referenceSolutions Json
 
@@ -61,10 +92,29 @@ model Problem {
   updatedAt DateTime @updatedAt
 
   //  Relationship
-  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  submission        Submission[]
-  solvedBy          ProblemSolved[]
-  problemsPlaylists ProblemInPlaylist[]
+  user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  submission    Submission[]
+  solvedBy      ProblemSolved[]
+  problemSheets ProblemInSheet[]
+  testCases     TestCase[]
+
+  @@map("Problems") // optional: map table name if needed
+}
+
+model TestCase {
+  id        String  @id @default(uuid())
+  input     String
+  expected  String
+  isPublic  Boolean @default(false)
+  problemId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relation to Problem
+  problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+
+  @@index([problemId])
 }
 
 // enum Status{
@@ -129,7 +179,7 @@ model ProblemSolved {
   @@unique([userId, problemId])
 }
 
-model Playlist {
+model Sheet {
   id          String  @id @default(uuid())
   name        String
   description String?
@@ -138,22 +188,22 @@ model Playlist {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  problems ProblemInPlaylist[]
+  problems ProblemInSheet[]
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([name, userId]) // unique playlist names per user
+  @@unique([name, userId]) // unique Sheet names per user
 }
 
-model ProblemInPlaylist {
-  id         String   @id @default(uuid())
-  playListId String
-  problemId  String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+model ProblemInSheet {
+  id        String   @id @default(uuid())
+  sheetId   String
+  problemId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  playlist Playlist @relation(fields: [playListId], references: [id], onDelete: Cascade)
-  problem  Problem  @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  Sheet   Sheet   @relation(fields: [sheetId], references: [id], onDelete: Cascade)
+  problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
 
-  @@unique([playListId, problemId])
+  @@unique([sheetId, problemId])
 }
