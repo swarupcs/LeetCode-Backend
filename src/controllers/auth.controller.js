@@ -202,6 +202,10 @@ export const googleAuthCallback = async (req, res) => {
     const name = googleProfile.displayName;
     const image = googleProfile.photos?.[0]?.value;
 
+    console.log("googleProfile", googleProfile);
+    console.log("email", email);
+    console.log("name", name);
+
     if (!email) {
       return res
         .status(400)
@@ -239,8 +243,29 @@ export const googleAuthCallback = async (req, res) => {
       maxAge: 1000 * 60 * 60 * 24 * 7,
     });
 
+    console.log("user", user);
+
     // Redirect or send JSON
-    res.redirect(process.env.CLIENT_URL || '/');
+    // res.redirect(process.env.CLIENT_URL || '/');
+    res.send(`
+      <script>
+        window.opener.postMessage('success', '${process.env.CLIENT_URL}');
+        window.close();
+      </script>
+    `);
+
+    
+    // res.status(200).json({
+    //   success: true,
+    //   message: 'User authenticated successfully',
+    //   user: {
+    //     id: user.id,
+    //     email: user.email,
+    //     name: user.name,
+    //     role: user.role,
+    //     image: user.image,
+    //   },
+    // })
   } catch (error) {
     console.error('Google Auth error:', error);
     res.status(500).json({ error: 'Google authentication failed' });

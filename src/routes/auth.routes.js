@@ -26,6 +26,14 @@ authRoutes.post("/logout", authMiddleware, logout);
 
 authRoutes.get("/getUserDetails", authMiddleware, getUserDetails)
 
+authRoutes.get('/me', authMiddleware, (req, res) => {
+  res.status(200).json({
+    success: true,
+    user: req.user, // user info from the middleware
+  });
+});
+
+
 authRoutes.get("/check", authMiddleware, check);
 
 // Google SSO routes
