@@ -51,6 +51,10 @@ app.use('/api/v1/codeExecutor', runCode);
 app.use('/api/v1/submission', submissionRoutes);
 app.use('/api/v1/sheets', sheetsRoutes);
 
+app.use("/ping", (req, res) => {
+  res.status(200).json({ message: "pong" });
+});
+
 const PORT = process.env.PORT || 8080;
 
 app.listen(PORT, () => {
