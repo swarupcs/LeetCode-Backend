@@ -192,3 +192,82 @@ export const getUserDetails = async (req, res) => {
 
 
 }
+
+export const googleAuthCallback = async (req, res) => {
+  try {
+    const googleProfile = req.user;
+
+    // Extract profile details
+    const email = googleProfile.emails?.[0]?.value;
+    const name = googleProfile.displayName;
+    const image = googleProfile.photos?.[0]?.value;
+
+    console.log("googleProfile", googleProfile);
+    console.log("email", email);
+    console.log("name", name);
+
+    if (!email) {
+      return res
+        .status(400)
+        .json({ error: 'No email found in Google profile' });
+    }
+
+    // Check if user exists
+    let user = await db.user.findUnique({
+      where: { email },
+    });
+
+    if (!user) {
+      // Create new user
+      user = await db.user.create({
+        data: {
+          email,
+          name,
+          image,
+          role: UserRole.USER,
+          password: '', // no password for Google SSO
+        },
+      });
+    }
+
+    // Issue JWT
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+      expiresIn: '7d',
+    });
+
+    // Set cookie
+    res.cookie('jwt', token, {
+      httpOnly: true,
+      sameSite: 'strict',
+      secure: process.env.NODE_ENV !== 'development',
+      maxAge: 1000 * 60 * 60 * 24 * 7,
+    });
+
+    console.log("user", user);
+
+    // Redirect or send JSON
+    // res.redirect(process.env.CLIENT_URL || '/');
+    res.send(`
+      <script>
+        window.opener.postMessage('success', '${process.env.CLIENT_URL}');
+        window.close();
+      </script>
+    `);
+
+    
+    // res.status(200).json({
+    //   success: true,
+    //   message: 'User authenticated successfully',
+    //   user: {
+    //     id: user.id,
+    //     email: user.email,
+    //     name: user.name,
+    //     role: user.role,
+    //     image: user.image,
+    //   },
+    // })
+  } catch (error) {
+    console.error('Google Auth error:', error);
+    res.status(500).json({ error: 'Google authentication failed' });
+  }
+};
