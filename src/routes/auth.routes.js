@@ -1,5 +1,5 @@
 import express from "express";
-import { check, getUserDetails, googleAuthCallback, login, logout, register } from "../controllers/auth.controller.js";
+import { check, getMe, getUserDetails, googleAuthCallback, login, logout, register } from "../controllers/auth.controller.js";
 import { authMiddleware } from './../middleware/auth.middleware.js';
 import passport from '../config/passport.js';
 import session from 'express-session';
@@ -26,13 +26,7 @@ authRoutes.post("/logout", authMiddleware, logout);
 
 authRoutes.get("/getUserDetails", authMiddleware, getUserDetails)
 
-authRoutes.get('/me', authMiddleware, (req, res) => {
-  res.status(200).json({
-    success: true,
-    user: req.user, // user info from the middleware
-  });
-});
-
+authRoutes.get('/me', authMiddleware, getMe);
 
 authRoutes.get("/check", authMiddleware, check);
 

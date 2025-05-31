@@ -271,3 +271,58 @@ export const googleAuthCallback = async (req, res) => {
     res.status(500).json({ error: 'Google authentication failed' });
   }
 };
+
+
+export const getMe = async (req, res) => {
+  try {
+    // The `req.user` is set by your authMiddleware, which likely verifies the JWT and attaches the user info
+    const user = req.user;
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Unauthorized: No user info found',
+      });
+    }
+
+    // You might want to refetch fresh data from DB, e.g. in case of updates (optional)
+    const userDetails = await db.user.findUnique({
+      where: { id: user.id },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        name: true,
+        role: true,
+        image: true,
+        createdAt: true,
+      },
+    });
+
+    if (!userDetails) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found',
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      user: {
+        id: userDetails.id,
+        email: userDetails.email,
+        username: userDetails.username,
+        name: userDetails.name,
+        role: userDetails.role,
+        image: userDetails.image,
+        createdAt: userDetails.createdAt,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching user details:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error fetching user details',
+    });
+  }
+};
