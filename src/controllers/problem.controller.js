@@ -48,6 +48,18 @@ export const createProblem = async (req, res) => {
     });
   }
 
+  if (!Array.isArray(companyTags)) {
+    return res.status(400).json({
+      success: false,
+      message: 'Company tags must be an array.',
+    });
+  }
+
+  const sanitizedCompanyTags = companyTags
+    .filter((tag) => typeof tag === 'string' && tag.trim().length > 0)
+    .map((tag) => tag.trim())
+    .slice(0, 20); // Limit to 20 company tags
+
   try {
     // Check for existing title or problemNumber
     const existingProblem = await db.problem.findFirst({
@@ -115,6 +127,7 @@ export const createProblem = async (req, res) => {
           userId: req.user.id,
           hints,
           editorial,
+          companyTags: sanitizedCompanyTags,
         },
       });
 
@@ -200,6 +213,7 @@ export const getAllProblems = async (req, res) => {
         userId: problem.userId,
         description: problem.description,
         difficulty: problem.difficulty,
+        companyTags: problem.companyTags,
       };
     });
 
@@ -312,6 +326,8 @@ export const updateProblem = async (req, res) => {
         problem.codeSnippets ?? existingProblem.codeSnippets;
       updateData.referenceSolutions =
         problem.referenceSolutions ?? existingProblem.referenceSolutions;
+      updateData.companyTags =
+        problem.companyTags ?? existingProblem.companyTags;
     }
 
     // If problemNumber is present in request body, update it
