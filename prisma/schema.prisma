@@ -83,6 +83,7 @@ model Problem {
   examples      Json
   hints         String?
   editorial     String?
+  companyTags   String[] @default([])
 
   //testcases          Json 
   codeSnippets       Json

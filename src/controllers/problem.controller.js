@@ -38,6 +38,7 @@ export const createProblem = async (req, res) => {
     referenceSolutions = {},
     hints = '',
     editorial = '',
+    companyTags = [],
   } = problem;
 
   if (!title || !description || !difficulty) {
