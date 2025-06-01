@@ -12,9 +12,9 @@ import {
 
 const sheetsRoutes = express.Router();
 
-sheetsRoutes.get('/', authMiddleware, getAllSheetDetails);
+sheetsRoutes.get('/',  getAllSheetDetails);
 
-sheetsRoutes.get('/:sheetId', authMiddleware, getIndividualSheetDetails);
+sheetsRoutes.get('/:sheetId',  getIndividualSheetDetails);
 
 sheetsRoutes.post('/createSheet', authMiddleware, createSheet);
 
