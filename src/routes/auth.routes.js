@@ -1,5 +1,5 @@
 import express from "express";
-import { check, getMe, getUserDetails, googleAuthCallback, login, logout, register } from "../controllers/auth.controller.js";
+import { check, getCurrentUser,  getUserDetails, googleAuth, googleAuthCallback, login, logout, register } from "../controllers/auth.controller.js";
 import { authMiddleware } from './../middleware/auth.middleware.js';
 import passport from '../config/passport.js';
 import session from 'express-session';
@@ -38,20 +38,27 @@ authRoutes.post("/logout", authMiddleware, logout);
 
 authRoutes.get("/getUserDetails", authMiddleware, getUserDetails)
 
-authRoutes.get('/me', authMiddleware, getMe);
+authRoutes.get('/me', getCurrentUser);
 
 authRoutes.get("/check", authMiddleware, check);
 
 // Google SSO routes
 authRoutes.get(
   '/google',
-  setCOOPHeaders, passport.authenticate('google', { scope: ['profile', 'email'] })
+  googleAuth,
+  passport.authenticate('google', {
+    scope: ['profile', 'email'],
+  })
 );
 
 authRoutes.get(
   '/google/callback',
-  setCOOPHeaders, passport.authenticate('google', { session: false }),
+  passport.authenticate('google', {
+    failureRedirect: '/login',
+    session: true,
+  }),
   googleAuthCallback
 );
+
 
 export default authRoutes;

@@ -1,48 +1,73 @@
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
-
-// IMPORTANT: Use SERVER URL for callback, not CLIENT URL
-// The callback URL must point to your backend server where the route is handled
-const serverDevURL = process.env.SERVER_DEV_URL || 'http://localhost:5000';
-const serverProdURL =
-  process.env.SERVER_PROD_URL || 'https://your-backend-domain.com';
-
-const serverURL =
-  process.env.NODE_ENV === 'production' ? serverProdURL : serverDevURL;
-
-// Correct callback URL - points to your backend server
-const callbackURL = `${serverURL}/api/v1/auth/google/callback`;
-
-console.log('callbackURL', callbackURL);
-console.log('NODE_ENV', process.env.NODE_ENV);
+import { db } from '../libs/db.js';
+import jwt from 'jsonwebtoken';
 
 passport.use(
   new GoogleStrategy(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL,
+      callbackURL: process.env.GOOGLE_CALLBACK_URL,
     },
-    (accessToken, refreshToken, profile, done) => {
-      // Pass additional data that might be useful later
-      return done(null, {
-        profile,
-        accessToken,
-        refreshToken,
-      });
+    async (accessToken, refreshToken, profile, done) => {
+      const { id, displayName, emails, photos } = profile;
+
+      try {
+        // Check if user already exists
+        let user = await db.user.findUnique({
+          where: { googleId: id },
+        });
+
+        if (!user) {
+          // Check if email already exists (user registered using email/password)
+          const existingUser = await db.user.findUnique({
+            where: { email: emails[0].value },
+          });
+
+          if (existingUser) {
+            // Optionally update their account to link Google
+            user = await db.user.update({
+              where: { email: emails[0].value },
+              data: {
+                googleId: id,
+                image: photos[0]?.value,
+              },
+            });
+          } else {
+            // New user via Google
+            user = await db.user.create({
+              data: {
+                googleId: id,
+                name: displayName,
+                email: emails[0].value,
+                image: photos[0]?.value,
+                password: 'google_oauth', // Placeholder
+              },
+            });
+          }
+        }
+
+        return done(null, user);
+      } catch (err) {
+        return done(err, null);
+      }
     }
   )
 );
 
-// Since you're using session: false in your routes,
-// these serialize/deserialize functions are not strictly needed
-// but keeping them for consistency and potential future use
 passport.serializeUser((user, done) => {
-  done(null, user);
+  done(null, user.id);
 });
 
-passport.deserializeUser((obj, done) => {
-  done(null, obj);
+passport.deserializeUser(async (id, done) => {
+  try {
+    const user = await db.user.findUnique({ where: { id } });
+    done(null, user);
+  } catch (err) {
+    done(err, null);
+  }
 });
 
+ 
 export default passport;
