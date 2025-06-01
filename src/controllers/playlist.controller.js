@@ -26,15 +26,9 @@ export const createSheet = async (req, res) => {
 };
 
 export const getAllSheetDetails = async (req, res) => {
-
-  const userId = req.body?.userId || null;
-  console.log("userId", userId);
   try {
-    // Build the `where` clause dynamically based on userId
-    const whereClause = userId ? { userId } : {};
-
+    // Fetch all sheets with user and problem details
     const sdeSheets = await db.Sheet.findMany({
-      where: whereClause,
       include: {
         user: {
           select: {
@@ -84,7 +78,7 @@ export const getAllSheetDetails = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'Sheets fetched successfully',
+      message: 'All sheets fetched successfully',
       sdeSheets: processedSheets,
     });
   } catch (error) {
@@ -92,6 +86,7 @@ export const getAllSheetDetails = async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch sheets' });
   }
 };
+
 
 export const getIndividualSheetDetails = async (req, res) => {
   const { sheetId } = req.params;
@@ -101,7 +96,6 @@ export const getIndividualSheetDetails = async (req, res) => {
     const sheet = await db.Sheet.findFirst({
       where: {
         id: sheetId,
-        userId: req.user.id,
       },
       include: {
         user: {
@@ -129,6 +123,7 @@ export const getIndividualSheetDetails = async (req, res) => {
     });
 
     if (!sheet) {
+      console.log("sheet", sheet)
       return res.status(404).json({ error: 'Sheet not found' });
     }
 
