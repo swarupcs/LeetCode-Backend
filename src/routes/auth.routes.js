@@ -5,6 +5,18 @@ import passport from '../config/passport.js';
 import session from 'express-session';
 
 
+
+// middleware to set COOP headers
+const setCOOPHeaders = (req, res, next) => {
+  // Set Cross-Origin-Opener-Policy to allow communication between windows
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+  
+  // Optional: Set other related headers for better compatibility
+  res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
+  
+  next();
+};
+
 const authRoutes = express.Router();
 
 // Session middleware for Google SSO
@@ -31,8 +43,15 @@ authRoutes.get('/me', authMiddleware, getMe);
 authRoutes.get("/check", authMiddleware, check);
 
 // Google SSO routes
-authRoutes.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+authRoutes.get(
+  '/google',
+  setCOOPHeaders, passport.authenticate('google', { scope: ['profile', 'email'] })
+);
 
-authRoutes.get('/google/callback', passport.authenticate('google', { session: false }), googleAuthCallback);
+authRoutes.get(
+  '/google/callback',
+  setCOOPHeaders, passport.authenticate('google', { session: false }),
+  googleAuthCallback
+);
 
 export default authRoutes;
