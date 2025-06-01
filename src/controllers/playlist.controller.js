@@ -26,11 +26,15 @@ export const createSheet = async (req, res) => {
 };
 
 export const getAllSheetDetails = async (req, res) => {
+
+  const userId = req.body?.userId || null;
+  console.log("userId", userId);
   try {
+    // Build the `where` clause dynamically based on userId
+    const whereClause = userId ? { userId } : {};
+
     const sdeSheets = await db.Sheet.findMany({
-      where: {
-        userId: req.user.id,
-      },
+      where: whereClause,
       include: {
         user: {
           select: {

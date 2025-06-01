@@ -12,7 +12,7 @@ import {
 
 const sheetsRoutes = express.Router();
 
-sheetsRoutes.get('/', authMiddleware, getAllSheetDetails);
+sheetsRoutes.post('/',  getAllSheetDetails);
 
 sheetsRoutes.get('/:sheetId', authMiddleware, getIndividualSheetDetails);
 
