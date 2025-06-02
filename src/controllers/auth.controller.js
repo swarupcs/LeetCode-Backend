@@ -203,11 +203,22 @@ export const googleAuth = (req, res, next) => {
 };
 
 export const googleAuthCallback = (req, res) => {
-  // If authentication is successful, redirect user to frontend
   const user = req.user;
+  const envType = process.env.NODE_ENV;
 
   if (!user) {
-    return res.redirect('/login');
+    // Redirect to login with error query param
+    if (envType === 'production') {
+      return res.redirect(
+        `${process.env.CLIENT_PROD_URL}/login?error=google_login_failed`
+      );
+    } else if (envType === 'development') {
+      return res.redirect(
+        `${process.env.CLIENT_DEV_URL}/login?error=google_login_failed`
+      );
+    } else {
+      return res.redirect(`/login?error=google_login_failed`);
+    }
   }
 
   const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
@@ -217,17 +228,24 @@ export const googleAuthCallback = (req, res) => {
   res.cookie('jwt', token, {
     httpOnly: true,
     sameSite: 'strict',
-    secure: process.env.NODE_ENV !== 'development',
-    maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+    secure: envType !== 'development',
+    maxAge: 1000 * 60 * 60 * 24 * 7,
   });
 
+  // Redirect to frontend with success query param
   if (envType === 'production') {
-    return res.redirect(`${process.env.CLIENT_PROD_URL}/problem-set`);
+    return res.redirect(
+      `${process.env.CLIENT_PROD_URL}/problem-set?success=google_login`
+    );
   } else if (envType === 'development') {
-    return res.redirect(`${process.env.CLIENT_DEV_URL}/problem-set`);
+    return res.redirect(
+      `${process.env.CLIENT_DEV_URL}/problem-set?success=google_login`
+    );
+  } else {
+    return res.redirect(`/problem-set?success=google_login`);
   }
-
 };
+
 
 export const getCurrentUser = (req, res) => {
   if (req.isAuthenticated()) {
