@@ -4,9 +4,19 @@
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
+/**
+ * generator client {
+ * provider = "prisma-client-js"
+ * }
+ * datasource db {
+ * provider  = "postgresql"
+ * url       = env("DATABASE_URL")
+ * directUrl = env("DIRECT_URL")
+ * }
+ */
 generator client {
-  provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
+  provider      = "prisma-client-js"
+  output        = "../src/generated/prisma"
   binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
@@ -33,6 +43,7 @@ model User {
   username  String?  @unique
   image     String?
   role      UserRole @default(USER)
+  googleId  String?  @unique
   password  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -83,7 +94,7 @@ model Problem {
   examples      Json
   hints         String?
   editorial     String?
-  companyTags   String[] @default([])
+  companyTags   String[]   @default([])
 
   //testcases          Json 
   codeSnippets       Json

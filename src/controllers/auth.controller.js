@@ -4,6 +4,8 @@ import { UserRole } from '../generated/prisma/index.js';
 import jwt from 'jsonwebtoken';
 
 
+const envType = process.env.NODE_ENV;
+
 export const register = async (req, res) => {
   const { email, password, name } = req.body;
 
@@ -193,136 +195,62 @@ export const getUserDetails = async (req, res) => {
 
 }
 
-export const googleAuthCallback = async (req, res) => {
-  try {
-    const googleProfile = req.user;
 
-    // Extract profile details
-    const email = googleProfile.emails?.[0]?.value;
-    const name = googleProfile.displayName;
-    const image = googleProfile.photos?.[0]?.value;
 
-    console.log("googleProfile", googleProfile);
-    console.log("email", email);
-    console.log("name", name);
+export const googleAuth = (req, res, next) => {
+  // This is just a passthrough for passport
+  next();
+};
 
-    if (!email) {
-      return res
-        .status(400)
-        .json({ error: 'No email found in Google profile' });
+export const googleAuthCallback = (req, res) => {
+  const user = req.user;
+  const envType = process.env.NODE_ENV;
+
+  if (!user) {
+    // Redirect to login with error query param
+    if (envType === 'production') {
+      return res.redirect(
+        `${process.env.CLIENT_PROD_URL}/login?error=google_login_failed`
+      );
+    } else if (envType === 'development') {
+      return res.redirect(
+        `${process.env.CLIENT_DEV_URL}/login?error=google_login_failed`
+      );
+    } else {
+      return res.redirect(`/login?error=google_login_failed`);
     }
+  }
 
-    // Check if user exists
-    let user = await db.user.findUnique({
-      where: { email },
-    });
+  const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+    expiresIn: '7d',
+  });
 
-    if (!user) {
-      // Create new user
-      user = await db.user.create({
-        data: {
-          email,
-          name,
-          image,
-          role: UserRole.USER,
-          password: '', // no password for Google SSO
-        },
-      });
-    }
+  res.cookie('jwt', token, {
+    httpOnly: true,
+    sameSite: 'strict',
+    secure: envType !== 'development',
+    maxAge: 1000 * 60 * 60 * 24 * 7,
+  });
 
-    // Issue JWT
-    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
-      expiresIn: '7d',
-    });
-
-    // Set cookie
-    res.cookie('jwt', token, {
-      httpOnly: true,
-      sameSite: 'strict',
-      secure: process.env.NODE_ENV !== 'development',
-      maxAge: 1000 * 60 * 60 * 24 * 7,
-    });
-
-    console.log("user", user);
-
-    // Redirect or send JSON
-    // res.redirect(process.env.CLIENT_URL || '/');
-    res.send(`
-      <script>
-        window.opener.postMessage('success', '${process.env.CLIENT_URL}');
-        window.close();
-      </script>
-    `);
-
-    
-    // res.status(200).json({
-    //   success: true,
-    //   message: 'User authenticated successfully',
-    //   user: {
-    //     id: user.id,
-    //     email: user.email,
-    //     name: user.name,
-    //     role: user.role,
-    //     image: user.image,
-    //   },
-    // })
-  } catch (error) {
-    console.error('Google Auth error:', error);
-    res.status(500).json({ error: 'Google authentication failed' });
+  // Redirect to frontend with success query param
+  if (envType === 'production') {
+    return res.redirect(
+      `${process.env.CLIENT_PROD_URL}/problem-set?success=google_login`
+    );
+  } else if (envType === 'development') {
+    return res.redirect(
+      `${process.env.CLIENT_DEV_URL}/problem-set?success=google_login`
+    );
+  } else {
+    return res.redirect(`/problem-set?success=google_login`);
   }
 };
 
 
-export const getMe = async (req, res) => {
-  try {
-    // The `req.user` is set by your authMiddleware, which likely verifies the JWT and attaches the user info
-    const user = req.user;
-
-    if (!user) {
-      return res.status(401).json({
-        success: false,
-        error: 'Unauthorized: No user info found',
-      });
-    }
-
-    // You might want to refetch fresh data from DB, e.g. in case of updates (optional)
-    const userDetails = await db.user.findUnique({
-      where: { id: user.id },
-      select: {
-        id: true,
-        email: true,
-        username: true,
-        name: true,
-        role: true,
-        image: true,
-        createdAt: true,
-      },
-    });
-
-    if (!userDetails) {
-      return res.status(404).json({
-        success: false,
-        error: 'User not found',
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      user: {
-        id: userDetails.id,
-        email: userDetails.email,
-        username: userDetails.username,
-        name: userDetails.name,
-        role: userDetails.role,
-        image: userDetails.image,
-        createdAt: userDetails.createdAt,
-      },
-    });
-  } catch (error) {
-    console.error('Error fetching user details:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Error fetching user details',
-    });
+export const getCurrentUser = (req, res) => {
+  if (req.isAuthenticated()) {
+    res.status(200).json(req.user);
+  } else {
+    res.status(401).json({ message: 'Not authenticated' });
   }
 };
