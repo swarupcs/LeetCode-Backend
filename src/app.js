@@ -18,7 +18,7 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS.split(',').map((origin) =>
   origin.trim()
 );
 
-console.log("allowedOrigins", allowedOrigins);
+console.log('allowedOrigins', allowedOrigins);
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -51,8 +51,8 @@ app.use('/api/v1/codeExecutor', runCode);
 app.use('/api/v1/submission', submissionRoutes);
 app.use('/api/v1/sheets', sheetsRoutes);
 
-app.use("/ping", (req, res) => {
-  res.status(200).json({ message: "pong" });
+app.use('/ping', (req, res) => {
+  res.status(200).json({ message: 'pong' });
 });
 
 const PORT = process.env.PORT || 8080;
