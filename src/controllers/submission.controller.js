@@ -41,7 +41,7 @@ export const getUserSubmissions = async (req, res) => {
         message: 'No submissions found',
         submissions: [],
         stats: {
-          totalProblems,
+          totalProblemsAvailable: totalProblems,
           solvedProblemCount: 0,
         },
       });

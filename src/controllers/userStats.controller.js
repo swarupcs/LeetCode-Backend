@@ -132,45 +132,64 @@ export const getUserSolvedStats = async (req, res) => {
 
     const solvedProblemIds = solvedProblems.map((item) => item.problemId);
 
-    if (solvedProblemIds.length === 0) {
-      return res.status(200).json({
-        success: true,
-        message: 'No problems solved yet',
-        difficultyStats: {},
-        tagStats: {},
-      });
+    // Step 2: Fetch details of those solved problems
+    const solvedProblemsDetails =
+      solvedProblemIds.length > 0
+        ? await db.problem.findMany({
+            where: { id: { in: solvedProblemIds } },
+            select: {
+              difficulty: true,
+              tags: true,
+            },
+          })
+        : [];
+
+    // Step 3: Aggregate user's solved stats
+    const difficultyStats = { EASY: 0, MEDIUM: 0, HARD: 0 };
+    const tagStats = {};
+
+    for (const problem of solvedProblemsDetails) {
+      difficultyStats[problem.difficulty] =
+        (difficultyStats[problem.difficulty] || 0) + 1;
+
+      for (const tag of problem.tags) {
+        tagStats[tag] = (tagStats[tag] || 0) + 1;
+      }
     }
 
-    // Step 2: Fetch details of those problems
-    const problems = await db.problem.findMany({
-      where: { id: { in: solvedProblemIds } },
+    // Step 4: Get total problems count per difficulty
+    const allProblems = await db.problem.findMany({
       select: {
         difficulty: true,
         tags: true,
       },
     });
 
-    // Step 3: Aggregate stats
-    const difficultyStats = { EASY: 0, MEDIUM: 0, HARD: 0 };
-    const tagStats = {};
+    // Total counts per difficulty
+    const totalDifficultyCounts = { EASY: 0, MEDIUM: 0, HARD: 0 };
 
-    for (const problem of problems) {
-      // Difficulty count
-      difficultyStats[problem.difficulty] =
-        (difficultyStats[problem.difficulty] || 0) + 1;
+    // Total counts per tag
+    const totalTagCounts = {};
 
-      // Tag count
+    for (const problem of allProblems) {
+      totalDifficultyCounts[problem.difficulty] =
+        (totalDifficultyCounts[problem.difficulty] || 0) + 1;
+
       for (const tag of problem.tags) {
-        tagStats[tag] = (tagStats[tag] || 0) + 1;
+        totalTagCounts[tag] = (totalTagCounts[tag] || 0) + 1;
       }
     }
 
-    // Step 4: Send response
+    // Step 5: Send response
     res.status(200).json({
       success: true,
       message: 'Solved stats fetched successfully',
-      difficultyStats,
-      tagStats,
+      data: {
+        difficultyStats,
+        tagStats,
+        totalDifficultyCounts,
+        totalTagCounts,
+      },
     });
   } catch (err) {
     console.error('Failed to get user solved stats:', err);
@@ -180,3 +199,4 @@ export const getUserSolvedStats = async (req, res) => {
     });
   }
 };
+
