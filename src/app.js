@@ -7,6 +7,7 @@ import submissionRoutes from './routes/submission.routes.js';
 import cors from 'cors';
 import runCode from './routes/runCode.routes.js';
 import sheetsRoutes from './routes/sheets.routes.js';
+import userStatsRoutes from './routes/userStats.routes.js';
 
 dotenv.config();
 
@@ -18,7 +19,7 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS.split(',').map((origin) =>
   origin.trim()
 );
 
-console.log("allowedOrigins", allowedOrigins);
+console.log('allowedOrigins', allowedOrigins);
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -51,8 +52,10 @@ app.use('/api/v1/codeExecutor', runCode);
 app.use('/api/v1/submission', submissionRoutes);
 app.use('/api/v1/sheets', sheetsRoutes);
 
-app.use("/ping", (req, res) => {
-  res.status(200).json({ message: "pong" });
+app.use("/api/v1/userStats", userStatsRoutes)
+
+app.use('/ping', (req, res) => {
+  res.status(200).json({ message: 'pong' });
 });
 
 const PORT = process.env.PORT || 8080;

@@ -2,11 +2,11 @@ import { db } from '../libs/db.js';
 
 import { format } from 'date-fns'; // Use to format date
 
-
 export const getUserSubmissions = async (req, res) => {
   const userId = req.user.id;
 
   try {
+    // 1. Fetch all submissions by user
     const submissions = await db.submission.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
@@ -32,44 +32,65 @@ export const getUserSubmissions = async (req, res) => {
       },
     });
 
+    // 2. Fetch total number of problems in platform
+    const totalProblems = await db.problem.count();
+
     // console.log("submissions", submissions);
     if (!submissions.length) {
-      return res
-        .status(200)
-        .json({ message: 'No submissions found', submissions: [] });
+      return res.status(200).json({
+        message: 'No submissions found',
+        submissions: [],
+        stats: {
+          totalProblemsAvailable: totalProblems,
+          solvedProblemCount: 0,
+        },
+      });
     }
 
-    console.log("submissions", submissions);
+    console.log('submissions', submissions);
 
+    // 3. Fetch number of problems solved by this user
+    const solvedProblems = await db.problemSolved.findMany({
+      where: { userId },
+      select: { problemId: true },
+      distinct: ['problemId'],
+    });
 
+    const solvedProblemCount = solvedProblems.length;
 
+    const formatted = submissions.map((s) => {
+      const totalTime = s.testCases.reduce(
+        (acc, tc) => acc + (parseFloat(tc.time) || 0),
+        0
+      );
+      const totalMemory = s.testCases.reduce(
+        (acc, tc) => acc + (parseFloat(tc.memory) || 0),
+        0
+      );
 
- 
-const formatted = submissions.map((s) => {
-  const totalTime = s.testCases.reduce(
-    (acc, tc) => acc + (parseFloat(tc.time) || 0),
-    0
-  );
-  const totalMemory = s.testCases.reduce(
-    (acc, tc) => acc + (parseFloat(tc.memory) || 0),
-    0
-  );
+      return {
+        id: s.id,
+        problemName: s.problem.title,
+        problemId: s.problemId,
+        problemDifficulty: s.problem.difficulty,
+        tags: s.problem.tags,
+        status: s.status,
+        language: s.language,
+        runtime: `${totalTime.toFixed(2)}ms`,
+        memory: `${totalMemory.toFixed(2)}KB`,
+        date: format(new Date(s.createdAt), 'MMM d, yyyy'),
+      };
+    });
 
-  return {
-    id: s.id,
-    problemName: s.problem.title,
-    problemId: s.problemId,
-    problemDifficulty: s.problem.difficulty,
-    tags: s.problem.tags,
-    status: s.status,
-    language: s.language,
-    runtime: `${totalTime.toFixed(2)}ms`,
-    memory: `${totalMemory.toFixed(2)}KB`,
-    date: format(new Date(s.createdAt), 'MMM d, yyyy'),
-  };
-});
-
-    res.status(200).json({ success: true, message: 'Submissions fetched', submissions: formatted });
+    res.status(200).json({
+      success: true,
+      message: 'Submissions fetched',
+      submissions: formatted,
+      stats: {
+        totalProblemsAvailable:totalProblems,
+        solvedProblemCount,
+      },
+    });
   } catch (err) {
     console.error('Failed to fetch submissions:', err);
     res.status(500).json({ success: false, error: 'Internal Server Error' });
@@ -144,10 +165,6 @@ export const getUserSubmissionsForProblem = async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
-
-
-
-
 
 // export const getAllSubmission = async (req, res) => {
 //   try {
