@@ -117,3 +117,66 @@ export const getUserProgressData = async (req, res) => {
     });
   }
 };
+
+
+export const getUserSolvedStats = async (req, res) => {
+  const userId = req.user.id;
+
+  try {
+    // Step 1: Get all unique problemIds the user has solved
+    const solvedProblems = await db.problemSolved.findMany({
+      where: { userId },
+      select: { problemId: true },
+      distinct: ['problemId'],
+    });
+
+    const solvedProblemIds = solvedProblems.map((item) => item.problemId);
+
+    if (solvedProblemIds.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: 'No problems solved yet',
+        difficultyStats: {},
+        tagStats: {},
+      });
+    }
+
+    // Step 2: Fetch details of those problems
+    const problems = await db.problem.findMany({
+      where: { id: { in: solvedProblemIds } },
+      select: {
+        difficulty: true,
+        tags: true,
+      },
+    });
+
+    // Step 3: Aggregate stats
+    const difficultyStats = { EASY: 0, MEDIUM: 0, HARD: 0 };
+    const tagStats = {};
+
+    for (const problem of problems) {
+      // Difficulty count
+      difficultyStats[problem.difficulty] =
+        (difficultyStats[problem.difficulty] || 0) + 1;
+
+      // Tag count
+      for (const tag of problem.tags) {
+        tagStats[tag] = (tagStats[tag] || 0) + 1;
+      }
+    }
+
+    // Step 4: Send response
+    res.status(200).json({
+      success: true,
+      message: 'Solved stats fetched successfully',
+      difficultyStats,
+      tagStats,
+    });
+  } catch (err) {
+    console.error('Failed to get user solved stats:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Internal Server Error',
+    });
+  }
+};
