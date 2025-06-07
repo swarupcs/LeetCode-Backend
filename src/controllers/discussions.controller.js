@@ -147,6 +147,104 @@ export const getSingleDiscussion = async (req, res) => {
   }
 };
 
+
+export const updateDiscussion = async (req, res) => {
+  const userId = req.user.id;
+  const { id } = req.params;
+  const { title, content, codeContent, codeLanguage, category, tags } =
+    req.body;
+
+  try {
+    // Find discussion
+    const discussion = await db.discussion.findUnique({
+      where: { id },
+    });
+
+    if (!discussion) {
+      return res.status(404).json({ message: 'Discussion not found' });
+    }
+
+    // Check if the user is the author
+    if (discussion.authorId !== userId) {
+      return res
+        .status(403)
+        .json({ message: 'Unauthorized to update this discussion' });
+    }
+
+    const updatedDiscussion = await db.discussion.update({
+      where: { id },
+      data: {
+        title,
+        content,
+        contentType: codeContent ? 'code' : 'text',
+        codeContent: codeContent || null,
+        codeLanguage: codeLanguage || null,
+        category,
+        tags,
+        isEdited: true,
+      },
+      include: {
+        author: {
+          select: {
+            id: true,
+            username: true,
+            email: true,
+            image: true,
+          },
+        },
+      },
+    });
+
+    res.status(200).json({
+      message: 'Discussion updated successfully',
+      data: updatedDiscussion,
+    });
+  } catch (err) {
+    console.error('Error updating discussion:', err);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
+export const deleteDiscussion = async (req, res) => {
+  const userId = req.user.id;
+  const { id } = req.params;
+
+  console.log("id", id);
+  console.log("userId", userId);
+
+  try {
+    const discussion = await db.discussion.findUnique({
+      where: { id },
+    });
+
+    if (!discussion) {
+      return res.status(404).json({ message: 'Discussion not found' });
+    }
+
+    // Check if the user is the author
+    if (discussion.authorId !== userId) {
+      return res
+        .status(403)
+        .json({ message: 'Unauthorized to delete this discussion' });
+    }
+
+    await db.discussion.delete({
+      where: { id },
+    });
+
+    res.status(200).json({ message: 'Discussion deleted successfully' });
+  } catch (err) {
+    console.error('Error deleting discussion:', err);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
+
+
+
+
+
+
 export const updateComment = async (req, res) => {
   const { id } = req.params; // comment ID
   const { content } = req.body;

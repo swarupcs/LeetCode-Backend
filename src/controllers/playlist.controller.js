@@ -87,7 +87,6 @@ export const getAllSheetDetails = async (req, res) => {
   }
 };
 
-
 export const getIndividualSheetDetails = async (req, res) => {
   const { sheetId } = req.params;
 
@@ -123,7 +122,7 @@ export const getIndividualSheetDetails = async (req, res) => {
     });
 
     if (!sheet) {
-      console.log("sheet", sheet)
+      console.log('sheet', sheet);
       return res.status(404).json({ error: 'Sheet not found' });
     }
 
@@ -156,13 +155,12 @@ export const getIndividualSheetDetails = async (req, res) => {
   }
 };
 
-
 export const addProblemToSheet = async (req, res) => {
   const { sheetId } = req.params;
   const { problemIds } = req.body;
 
-  console.log("sheetId", sheetId);
-  console.log("problemIds", problemIds);
+  console.log('sheetId', sheetId);
+  console.log('problemIds', problemIds);
 
   try {
     if (!Array.isArray(problemIds) || problemIds.length === 0) {
@@ -172,15 +170,12 @@ export const addProblemToSheet = async (req, res) => {
     // Create records fro each problems in the playlist
     const problemsInSheet = await db.ProblemInSheet.createMany({
       data: problemIds.map((problemId) => ({
-
         sheetId,
         problemId,
       })),
     });
 
-    
-
-    console.log("problemsInSheet", problemsInSheet);
+    console.log('problemsInSheet', problemsInSheet);
 
     res.status(201).json({
       success: true,
@@ -218,8 +213,8 @@ export const removeProblemFromSheet = async (req, res) => {
   const { sheetId } = req.params;
   const { problemIds } = req.body;
 
-  console.log("sheetId", sheetId);
-  console.log("problemIds", problemIds);
+  console.log('sheetId', sheetId);
+  console.log('problemIds', problemIds);
 
   try {
     if (!Array.isArray(problemIds) || problemIds.length === 0) {
@@ -245,7 +240,6 @@ export const removeProblemFromSheet = async (req, res) => {
     res.status(500).json({ error: 'Failed to remove problem from sheet' });
   }
 };
-
 
 export const updateProblemsInSheet = async (req, res) => {
   const { sheetId } = req.params;
