@@ -50,15 +50,56 @@ export const createDiscussion = async (req, res) => {
             image: true,
           },
         },
+        comments: {
+          where: { parentId: null }, // fetch top-level comments only
+          include: {
+            author: {
+              select: {
+                id: true,
+                username: true,
+                image: true,
+              },
+            },
+            replies: {
+              include: {
+                author: {
+                  select: {
+                    id: true,
+                    username: true,
+                    image: true,
+                  },
+                },
+                replies: {
+                  include: {
+                    author: {
+                      select: {
+                        id: true,
+                        username: true,
+                        image: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     });
 
-    res.status(201).json(newDiscussion);
+    // Ensure comments array is always present
+    const discussionWithComments = {
+      ...newDiscussion,
+      comments: newDiscussion.comments || [],
+    };
+
+    res.status(201).json(discussionWithComments);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Error creating discussion' });
   }
 };
+
 
 export const getAllDiscussions = async (req, res) => {
   try {
