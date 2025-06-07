@@ -88,7 +88,7 @@ model Comment {
   id           String     @id @default(uuid())
   content      String
   discussionId String
-  discussion   Discussion @relation(fields: [discussionId], references: [id])
+  discussion   Discussion @relation(fields: [discussionId], references: [id], onDelete: Cascade)
   parentId     String? // for nested replies
   parent       Comment?   @relation("CommentReplies", fields: [parentId], references: [id])
   replies      Comment[]  @relation("CommentReplies")
@@ -105,7 +105,7 @@ model Vote {
   userId       String
   user         User        @relation(fields: [userId], references: [id])
   discussionId String?
-  discussion   Discussion? @relation(fields: [discussionId], references: [id])
+  discussion   Discussion? @relation(fields: [discussionId], references: [id], onDelete: Cascade)
   commentId    String?
   comment      Comment?    @relation(fields: [commentId], references: [id])
   value        Int // 1 = upvote, -1 = downvote
@@ -120,7 +120,7 @@ model Bookmark {
   userId       String
   user         User       @relation(fields: [userId], references: [id])
   discussionId String
-  discussion   Discussion @relation(fields: [discussionId], references: [id])
+  discussion   Discussion @relation(fields: [discussionId], references: [id], onDelete: Cascade)
   createdAt    DateTime   @default(now())
 
   @@unique([userId, discussionId])

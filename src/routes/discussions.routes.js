@@ -4,6 +4,7 @@ import {
   createDiscussion,
   deleteComment,
   deleteDiscussion,
+  getAllComments,
   getAllDiscussions,
   updateComment,
   updateDiscussion,
@@ -23,7 +24,11 @@ discussionsRoutes.delete(
   authMiddleware,
   deleteDiscussion
 );
-discussionsRoutes.put('/comments/:id', authMiddleware, updateComment);
-discussionsRoutes.delete('/comments/:id', authMiddleware, deleteComment);
+
+
+discussionsRoutes.post('/createComment', authMiddleware, createDiscussion);
+discussionsRoutes.get('/getAllComments', getAllComments);
+discussionsRoutes.put('/updateComment/:id', authMiddleware, updateComment);
+discussionsRoutes.delete('/deleteComment/:id', authMiddleware, deleteComment);
 
 export default discussionsRoutes;

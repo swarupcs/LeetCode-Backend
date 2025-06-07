@@ -113,6 +113,40 @@ export const getAllDiscussions = async (req, res) => {
             image: true,
           },
         },
+        comments: {
+          where: { parentId: null },
+          include: {
+            author: {
+              select: {
+                id: true,
+                username: true,
+                image: true,
+              },
+            },
+            replies: {
+              include: {
+                author: {
+                  select: {
+                    id: true,
+                    username: true,
+                    image: true,
+                  },
+                },
+                replies: {
+                  include: {
+                    author: {
+                      select: {
+                        id: true,
+                        username: true,
+                        image: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
         _count: {
           select: {
             comments: true,
@@ -123,15 +157,11 @@ export const getAllDiscussions = async (req, res) => {
       },
     });
 
-    if (discussions.length === 0) {
-      return res.status(200).json({
-        message: 'No discussions found',
-        data: [],
-      });
-    }
-
     res.status(200).json({
-      message: 'Discussions fetched successfully',
+      message:
+        discussions.length > 0
+          ? 'Discussions fetched successfully'
+          : 'No discussions found',
       data: discussions,
     });
   } catch (err) {
@@ -139,6 +169,7 @@ export const getAllDiscussions = async (req, res) => {
     res.status(500).json({ message: 'Internal Server Error' });
   }
 };
+
 
 export const getSingleDiscussion = async (req, res) => {
   const { id } = req.params;
@@ -155,6 +186,7 @@ export const getSingleDiscussion = async (req, res) => {
           },
         },
         comments: {
+          where: { parentId: null },
           include: {
             author: {
               select: {
@@ -163,8 +195,29 @@ export const getSingleDiscussion = async (req, res) => {
                 image: true,
               },
             },
-            replies: true,
-            votes: true,
+            replies: {
+              include: {
+                author: {
+                  select: {
+                    id: true,
+                    username: true,
+                    image: true,
+                  },
+                },
+                replies: {
+                  include: {
+                    author: {
+                      select: {
+                        id: true,
+                        username: true,
+                        image: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            votes: true, // Optional — if you want to show vote counts/userVote
           },
         },
         _count: {
@@ -183,7 +236,7 @@ export const getSingleDiscussion = async (req, res) => {
 
     res.status(200).json(discussion);
   } catch (err) {
-    console.error(err);
+    console.error('Error fetching single discussion:', err);
     res.status(500).json({ message: 'Error fetching discussion' });
   }
 };
@@ -196,16 +249,17 @@ export const updateDiscussion = async (req, res) => {
     req.body;
 
   try {
-    // Find discussion
     const discussion = await db.discussion.findUnique({
       where: { id },
+      select: {
+        authorId: true,
+      },
     });
 
     if (!discussion) {
       return res.status(404).json({ message: 'Discussion not found' });
     }
 
-    // Check if the user is the author
     if (discussion.authorId !== userId) {
       return res
         .status(403)
@@ -229,8 +283,15 @@ export const updateDiscussion = async (req, res) => {
           select: {
             id: true,
             username: true,
-            email: true,
             image: true,
+            email: true,
+          },
+        },
+        _count: {
+          select: {
+            comments: true,
+            votes: true,
+            bookmarks: true,
           },
         },
       },
@@ -246,6 +307,7 @@ export const updateDiscussion = async (req, res) => {
   }
 };
 
+
 export const deleteDiscussion = async (req, res) => {
   const userId = req.user.id;
   const { id } = req.params;
@@ -256,6 +318,9 @@ export const deleteDiscussion = async (req, res) => {
   try {
     const discussion = await db.discussion.findUnique({
       where: { id },
+      select: {
+        authorId: true,
+      },
     });
 
     if (!discussion) {
@@ -281,14 +346,128 @@ export const deleteDiscussion = async (req, res) => {
 };
 
 
+export const createComment = async (req, res) => {
+  const userId = req.user.id;
+  const { discussionId, content, parentId } = req.body;
 
+  if (!discussionId || !content) {
+    return res
+      .status(400)
+      .json({ message: 'discussionId and content are required' });
+  }
 
+  try {
+    // Optionally check if discussion exists (optional but recommended)
+    const discussion = await db.discussion.findUnique({
+      where: { id: discussionId },
+    });
+    if (!discussion) {
+      return res.status(404).json({ message: 'Discussion not found' });
+    }
 
+    // If parentId is provided, check if parent comment exists and belongs to same discussion
+    if (parentId) {
+      const parentComment = await db.comment.findUnique({
+        where: { id: parentId },
+      });
+      if (!parentComment) {
+        return res.status(404).json({ message: 'Parent comment not found' });
+      }
+      if (parentComment.discussionId !== discussionId) {
+        return res
+          .status(400)
+          .json({
+            message: 'Parent comment must belong to the same discussion',
+          });
+      }
+    }
+
+    const newComment = await db.comment.create({
+      data: {
+        content,
+        discussionId,
+        parentId: parentId || null,
+        authorId: userId,
+      },
+      include: {
+        author: {
+          select: {
+            id: true,
+            username: true,
+            image: true,
+          },
+        },
+        replies: true,
+        votes: true,
+      },
+    });
+
+    res.status(201).json({
+      message: 'Comment created successfully',
+      data: newComment,
+    });
+  } catch (err) {
+    console.error('Error creating comment:', err);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
+// Get all comments for a discussion, with nested replies
+export const getAllComments = async (req, res) => {
+  const { discussionId } = req.params;
+
+  try {
+    // Check if discussion exists
+    const discussion = await db.discussion.findUnique({
+      where: { id: discussionId },
+    });
+    if (!discussion) {
+      return res.status(404).json({ message: "Discussion not found" });
+    }
+
+    // Fetch comments with nested replies (recursive depth depends on DB; here we fetch one level)
+    const comments = await db.comment.findMany({
+      where: { discussionId, parentId: null }, // fetch only root comments
+      include: {
+        author: {
+          select: {
+            id: true,
+            username: true,
+            image: true,
+          },
+        },
+        replies: {
+          include: {
+            author: {
+              select: {
+                id: true,
+                username: true,
+                image: true,
+              },
+            },
+            votes: true,
+          },
+        },
+        votes: true,
+      },
+      orderBy: { createdAt: "asc" },
+    });
+
+    res.status(200).json({
+      message: "Comments fetched successfully",
+      data: comments,
+    });
+  } catch (err) {
+    console.error("Error fetching comments:", err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
 
 
 export const updateComment = async (req, res) => {
-  const { id } = req.params; // comment ID
+  const { id } = req.params;
   const { content } = req.body;
+  const userId = req.user.id;
 
   try {
     const existingComment = await db.comment.findUnique({
@@ -299,7 +478,7 @@ export const updateComment = async (req, res) => {
       return res.status(404).json({ message: 'Comment not found' });
     }
 
-    if (existingComment.authorId !== req.user.id) {
+    if (existingComment.authorId !== userId) {
       return res
         .status(403)
         .json({ message: 'Forbidden - Not the comment author' });
@@ -309,19 +488,25 @@ export const updateComment = async (req, res) => {
       where: { id },
       data: {
         content,
+        isEdited: true,
         updatedAt: new Date(),
       },
     });
 
-    res.status(200).json(updated);
+    res.status(200).json({
+      message: 'Comment updated successfully',
+      data: updated,
+    });
   } catch (err) {
     console.error('Error updating comment:', err);
     res.status(500).json({ message: 'Error updating comment' });
   }
 };
 
+
 export const deleteComment = async (req, res) => {
-  const { id } = req.params; // comment ID
+  const { id } = req.params;
+  const userId = req.user.id;
 
   try {
     const existingComment = await db.comment.findUnique({
@@ -332,7 +517,7 @@ export const deleteComment = async (req, res) => {
       return res.status(404).json({ message: 'Comment not found' });
     }
 
-    if (existingComment.authorId !== req.user.id) {
+    if (existingComment.authorId !== userId) {
       return res
         .status(403)
         .json({ message: 'Forbidden - Not the comment author' });
@@ -348,3 +533,4 @@ export const deleteComment = async (req, res) => {
     res.status(500).json({ message: 'Error deleting comment' });
   }
 };
+
