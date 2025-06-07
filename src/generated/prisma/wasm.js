@@ -130,6 +130,53 @@ exports.Prisma.UserScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.DiscussionScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  content: 'content',
+  contentType: 'contentType',
+  codeContent: 'codeContent',
+  codeLanguage: 'codeLanguage',
+  category: 'category',
+  tags: 'tags',
+  company: 'company',
+  position: 'position',
+  problemId: 'problemId',
+  problemTitle: 'problemTitle',
+  problemDifficulty: 'problemDifficulty',
+  authorId: 'authorId',
+  isEdited: 'isEdited',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.CommentScalarFieldEnum = {
+  id: 'id',
+  content: 'content',
+  discussionId: 'discussionId',
+  parentId: 'parentId',
+  authorId: 'authorId',
+  isEdited: 'isEdited',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.VoteScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  discussionId: 'discussionId',
+  commentId: 'commentId',
+  value: 'value',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.BookmarkScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  discussionId: 'discussionId',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.ProblemScalarFieldEnum = {
   id: 'id',
   title: 'title',
@@ -254,6 +301,10 @@ exports.Difficulty = exports.$Enums.Difficulty = {
 
 exports.Prisma.ModelName = {
   User: 'User',
+  Discussion: 'Discussion',
+  Comment: 'Comment',
+  Vote: 'Vote',
+  Bookmark: 'Bookmark',
   Problem: 'Problem',
   TestCase: 'TestCase',
   Submission: 'Submission',
