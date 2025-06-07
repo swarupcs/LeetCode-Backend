@@ -8,6 +8,7 @@ import cors from 'cors';
 import runCode from './routes/runCode.routes.js';
 import sheetsRoutes from './routes/sheets.routes.js';
 import userStatsRoutes from './routes/userStats.routes.js';
+import discussionsRoutes from './routes/discussions.routes.js';
 
 dotenv.config();
 
@@ -53,6 +54,7 @@ app.use('/api/v1/submission', submissionRoutes);
 app.use('/api/v1/sheets', sheetsRoutes);
 
 app.use("/api/v1/userStats", userStatsRoutes)
+app.use('/api/v1/discussions', discussionsRoutes);
 
 app.use('/ping', (req, res) => {
   res.status(200).json({ message: 'pong' });
