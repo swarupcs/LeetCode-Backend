@@ -18,13 +18,43 @@ export const register = async (req, res) => {
       return res.status(400).json({ error: 'User already exists' });
     }
 
+    // Extract base username from email
+    const baseUsername = email.split('@')[0].toLowerCase();
+
+    // Find all usernames starting with baseUsername
+    const similarUsers = await db.user.findMany({
+      where: {
+        username: {
+          startsWith: baseUsername,
+        },
+      },
+      select: {
+        username: true,
+      },
+    });
+
+    // Create a Set of existing usernames for quick lookup
+    const existingUsernames = new Set(similarUsers.map((u) => u.username));
+
+    // Generate unique username with suffix if needed
+    let username = baseUsername;
+    let suffix = 0;
+    while (existingUsernames.has(username)) {
+      suffix++;
+      username = `${baseUsername}_${suffix}`;
+    }
+
+    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create new user with unique username
     const newUser = await db.user.create({
       data: {
         email,
         password: hashedPassword,
         name,
         role: UserRole.USER,
+        username,
       },
     });
 
@@ -48,6 +78,7 @@ export const register = async (req, res) => {
         name: newUser.name,
         role: newUser.role,
         image: newUser.image,
+        username: newUser.username,
       },
     });
   } catch (error) {
@@ -58,6 +89,7 @@ export const register = async (req, res) => {
   }
 };
 
+
 export const login = async (req, res) => {
   const { email, password } = req.body;
 
@@ -67,8 +99,6 @@ export const login = async (req, res) => {
         email,
       },
     });
-
-    console.log('user', user);
 
     if (!user) {
       return res.status(401).json({
@@ -96,22 +126,24 @@ export const login = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'User Logged in successfully',
+      message: 'User logged in successfully',
       user: {
         id: user.id,
         email: user.email,
         name: user.name,
+        username: user.username, // added username here
         role: user.role,
         image: user.image,
       },
     });
   } catch (error) {
-    console.error('Error creating user:', error);
+    console.error('Error logging in user:', error);
     res.status(500).json({
       error: 'Error logging in user',
     });
   }
 };
+
 
 export const logout = async (req, res) => {
   try {

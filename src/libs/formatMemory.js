@@ -10,7 +10,8 @@
  * formatMemory(null) // undefined
  */
 export const formatMemory = (memoryKB) => {
-  if (!memoryKB) return undefined;
+  if (memoryKB === undefined || memoryKB === null || memoryKB === '')
+    return undefined;
 
   const kb = parseFloat(memoryKB);
   if (isNaN(kb)) return undefined;
@@ -19,8 +20,9 @@ export const formatMemory = (memoryKB) => {
     const mb = (kb / 1024).toFixed(2);
     return `${mb} MB`;
   }
-  return `${kb} KB`;
+  return `${kb.toFixed(2)} KB`;
 };
+  
 
 // If you prefer CommonJS exports:
 // module.exports = { formatMemory };
