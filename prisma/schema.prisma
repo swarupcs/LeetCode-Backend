@@ -52,6 +52,78 @@ model User {
   submission    Submission[]
   problemSolved ProblemSolved[]
   sheets        Sheet[]
+
+  //Discussion related fields
+  discussions Discussion[]
+  comments    Comment[]
+  votes       Vote[]
+  bookmarks   Bookmark[]
+}
+
+model Discussion {
+  id                String     @id @default(uuid())
+  title             String
+  content           String
+  contentType       String // "text" | "code"
+  codeContent       String?
+  codeLanguage      String?
+  category          String // "problem" | "interview" | "career" | "general"
+  tags              String[]
+  company           String?
+  position          String?
+  problemId         Int?
+  problemTitle      String?
+  problemDifficulty String?
+  authorId          String
+  author            User       @relation(fields: [authorId], references: [id])
+  comments          Comment[]
+  votes             Vote[]
+  bookmarks         Bookmark[]
+  isEdited          Boolean    @default(false)
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+}
+
+model Comment {
+  id           String     @id @default(uuid())
+  content      String
+  discussionId String
+  discussion   Discussion @relation(fields: [discussionId], references: [id], onDelete: Cascade)
+  parentId     String? // for nested replies
+  parent       Comment?   @relation("CommentReplies", fields: [parentId], references: [id])
+  replies      Comment[]  @relation("CommentReplies")
+  authorId     String
+  author       User       @relation(fields: [authorId], references: [id])
+  votes        Vote[]
+  isEdited     Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+model Vote {
+  id           String      @id @default(uuid())
+  userId       String
+  user         User        @relation(fields: [userId], references: [id])
+  discussionId String?
+  discussion   Discussion? @relation(fields: [discussionId], references: [id], onDelete: Cascade)
+  commentId    String?
+  comment      Comment?    @relation(fields: [commentId], references: [id])
+  value        Int // 1 = upvote, -1 = downvote
+  createdAt    DateTime    @default(now())
+
+  @@unique([userId, discussionId])
+  @@unique([userId, commentId])
+}
+
+model Bookmark {
+  id           String     @id @default(uuid())
+  userId       String
+  user         User       @relation(fields: [userId], references: [id])
+  discussionId String
+  discussion   Discussion @relation(fields: [discussionId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
+
+  @@unique([userId, discussionId])
 }
 
 /**
