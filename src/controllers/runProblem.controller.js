@@ -134,6 +134,8 @@ export const submitProblem = async (req, res) => {
 
       if (!passed) allPassed = false;
 
+      // console.log("result.memory", result.memory);
+
       return {
         testCaseId: testCases[i].id,
         testCase: i + 1,
@@ -148,6 +150,8 @@ export const submitProblem = async (req, res) => {
         isPublic: testCases[i].isPublic,
       };
     });
+
+    // console.log("detailedResults", detailedResults);
 
     // 7. Save the submission summary
     const submission = await db.submission.create({
@@ -170,6 +174,8 @@ export const submitProblem = async (req, res) => {
       },
     });
 
+    // console.log("submission", submission);
+
     // 8. Save individual test case results
     const testCaseResults = detailedResults.map((result) => ({
       submissionId: submission.id,
@@ -183,6 +189,8 @@ export const submitProblem = async (req, res) => {
       memory: result.memory,
       time: result.time,
     }));
+
+    // console.log("testCaseResults", testCaseResults);
 
     await db.testCaseResult.createMany({ data: testCaseResults });
 
@@ -219,6 +227,8 @@ export const submitProblem = async (req, res) => {
         })
         .filter((m) => !isNaN(m) && m > 0);
 
+      // console.log("memories", memories);
+
     const performanceMetrics = {
       totalTime:
         times.length > 0
@@ -229,6 +239,8 @@ export const submitProblem = async (req, res) => {
           ? formatMemory(memories.reduce((a, b) => a + b, 0))
           : undefined,
     };
+
+    // console.log("performanceMetrics", performanceMetrics);
 
     // 10. Return a sanitized response to the client
     const sanitizedResults = detailedResults.map((result) => {
@@ -250,6 +262,8 @@ export const submitProblem = async (req, res) => {
         time: result.time,
       };
     });
+
+    // console.log("sanitizedResults", sanitizedResults);
 
     // Count passed test cases and get total
     const passedTestCases = sanitizedResults.filter(

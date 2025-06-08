@@ -69,6 +69,8 @@ export const getUserSubmissions = async (req, res) => {
         0
       );
 
+      console.log("totalMemory", totalMemory);
+
       return {
         id: s.id,
         problemName: s.problem.title,
@@ -82,6 +84,8 @@ export const getUserSubmissions = async (req, res) => {
         date: format(new Date(s.createdAt), 'MMM d, yyyy'),
       };
     });
+
+    console.log("formatted", formatted);
 
     res.status(200).json({
       success: true,
@@ -101,6 +105,23 @@ export const getUserSubmissions = async (req, res) => {
 export const getUserSubmissionsForProblem = async (req, res) => {
   const userId = req.user.id;
   const problemId = req.params.problemId; // assuming problemId comes as a URL param
+
+  const convertToKB = (memStr) => {
+    if (typeof memStr === 'number') return memStr;
+    const regex = /([\d.]+)\s*(KB|MB|GB)?/i;
+    const match = memStr.match(regex);
+    if (!match) return 0;
+    const value = parseFloat(match[1]);
+    const unit = match[2] ? match[2].toUpperCase() : 'KB';
+    switch (unit) {
+      case 'MB':
+        return value * 1024;
+      case 'GB':
+        return value * 1024 * 1024;
+      default:
+        return value;
+    }
+  };
 
   try {
     const submissions = await db.submission.findMany({
@@ -129,6 +150,8 @@ export const getUserSubmissionsForProblem = async (req, res) => {
       },
     });
 
+
+
     if (!submissions.length) {
       return res
         .status(200)
@@ -140,20 +163,27 @@ export const getUserSubmissionsForProblem = async (req, res) => {
         (acc, tc) => acc + (parseFloat(tc.time) || 0),
         0
       );
-      const totalMemory = s.testCases.reduce(
-        (acc, tc) => acc + (parseFloat(tc.memory) || 0),
+
+      const testMemory = s.testCases.map((tc) => tc.memory || 0);
+      // console.log("testMemory", testMemory);
+
+      const totalMemoryKB = s.testCases.reduce(
+        (acc, tc) => acc + convertToKB(tc.memory || '0 KB'),
         0
       );
+
 
       return {
         id: s.id,
         status: s.status,
         language: s.language,
         runtime: `${totalTime.toFixed(2)}ms`,
-        memory: formatMemory(totalMemory),
+        memory: formatMemory(totalMemoryKB),
         date: format(new Date(s.createdAt), 'MMM d, yyyy'),
       };
     });
+
+    // console.log("formatted", formatted);
 
     res.status(200).json({
       problemId,

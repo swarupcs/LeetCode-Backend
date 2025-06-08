@@ -3,6 +3,26 @@ import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { db } from '../libs/db.js';
 import jwt from 'jsonwebtoken';
 
+
+// Helper function to generate unique username by adding suffix if needed
+async function generateUniqueUsername(baseUsername) {
+  let username = baseUsername;
+  let suffix = 0;
+
+  // Check if username exists
+  while (true) {
+    const existing = await db.user.findUnique({
+      where: { username },
+    });
+    if (!existing) {
+      // Not found, username is unique
+      return username;
+    }
+    suffix++;
+    username = `${baseUsername}${suffix}`;
+  }
+}
+
 passport.use(
   new GoogleStrategy(
     {
@@ -13,6 +33,9 @@ passport.use(
     async (accessToken, refreshToken, profile, done) => {
       const { id, displayName, emails, photos } = profile;
 
+      const email = emails[0].value;
+      const baseUsername = email.split('@')[0];
+
       try {
         // Check if user already exists
         let user = await db.user.findUnique({
@@ -22,7 +45,7 @@ passport.use(
         if (!user) {
           // Check if email already exists (user registered using email/password)
           const existingUser = await db.user.findUnique({
-            where: { email: emails[0].value },
+            where: { email },
           });
 
           if (existingUser) {
@@ -32,10 +55,15 @@ passport.use(
               data: {
                 googleId: id,
                 image: photos[0]?.value,
+                // Add username if missing:
+                username:
+                  existingUser.username ||
+                  (await generateUniqueUsername(baseUsername)),
               },
             });
           } else {
-            // New user via Google
+            // New user via Google: create with unique username
+            const username = await generateUniqueUsername(baseUsername);
             user = await db.user.create({
               data: {
                 googleId: id,
@@ -43,6 +71,7 @@ passport.use(
                 email: emails[0].value,
                 image: photos[0]?.value,
                 password: 'google_oauth', // Placeholder
+                username,
               },
             });
           }
