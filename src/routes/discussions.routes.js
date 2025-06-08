@@ -27,7 +27,7 @@ discussionsRoutes.delete(
 
 
 discussionsRoutes.post('/createComment', authMiddleware, createDiscussion);
-discussionsRoutes.get('/getAllComments', getAllComments);
+discussionsRoutes.get('/getAllComments/:discussionId', getAllComments);
 discussionsRoutes.put('/updateComment/:id', authMiddleware, updateComment);
 discussionsRoutes.delete('/deleteComment/:id', authMiddleware, deleteComment);
 
