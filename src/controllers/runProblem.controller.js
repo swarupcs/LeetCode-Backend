@@ -1,4 +1,5 @@
 import { db } from '../libs/db.js';
+import { formatMemory } from '../libs/formatMemory.js';
 import {
   getLanguageName,
   pollBatchResults,
@@ -54,6 +55,9 @@ export const runProblem = async (req, res) => {
       const passed = stdout === expected_output;
       if (!passed) allPassed = false;
 
+      // Format memory display
+
+
       return {
         testCase: i + 1,
         passed,
@@ -62,7 +66,7 @@ export const runProblem = async (req, res) => {
         stderr: result.stderr || null,
         compile_output: result.compile_output || null,
         status: result.status.description,
-        memory: result.memory ? `${result.memory} KB` : undefined,
+        memory: result.memory ? formatMemory(result.memory) : undefined,
         time: result.time ? `${result.time} s` : undefined,
       };
     });
@@ -139,7 +143,7 @@ export const submitProblem = async (req, res) => {
         stderr: result.stderr || null,
         compile_output: result.compile_output || null,
         status: result.status.description,
-        memory: result.memory ? `${result.memory} KB` : undefined,
+        memory: result.memory ? formatMemory(result.memory) : undefined,
         time: result.time ? `${result.time} s` : undefined,
         isPublic: testCases[i].isPublic,
       };
@@ -198,9 +202,22 @@ export const submitProblem = async (req, res) => {
       .map((r) => parseFloat(r.time?.replace(' s', '') || 0))
       .filter((t) => !isNaN(t));
 
-    const memories = detailedResults
-      .map((r) => parseInt(r.memory?.replace(' KB', '') || 0))
-      .filter((m) => !isNaN(m));
+
+      const memories = detailedResults
+        .map((r) => {
+          if (!r.memory) return 0;
+
+          // Handle both "KB" and "MB" formats
+          if (r.memory.includes('MB')) {
+            const mb = parseFloat(r.memory.replace(' MB', ''));
+            return mb * 1024; // Convert MB back to KB for calculation
+          } else if (r.memory.includes('KB')) {
+            return parseFloat(r.memory.replace(' KB', ''));
+          }
+
+          return 0;
+        })
+        .filter((m) => !isNaN(m) && m > 0);
 
     const performanceMetrics = {
       totalTime:
@@ -209,7 +226,7 @@ export const submitProblem = async (req, res) => {
           : undefined,
       totalMemory:
         memories.length > 0
-          ? `${memories.reduce((a, b) => a + b, 0)} KB`
+          ? formatMemory(memories.reduce((a, b) => a + b, 0))
           : undefined,
     };
 

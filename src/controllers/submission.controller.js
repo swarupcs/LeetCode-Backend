@@ -1,6 +1,7 @@
 import { db } from '../libs/db.js';
 
 import { format } from 'date-fns'; // Use to format date
+import { formatMemory } from '../libs/formatMemory.js';
 
 export const getUserSubmissions = async (req, res) => {
   const userId = req.user.id;
@@ -77,7 +78,7 @@ export const getUserSubmissions = async (req, res) => {
         status: s.status,
         language: s.language,
         runtime: `${totalTime.toFixed(2)}ms`,
-        memory: `${totalMemory.toFixed(2)}KB`,
+        memory: formatMemory(totalMemory),
         date: format(new Date(s.createdAt), 'MMM d, yyyy'),
       };
     });
@@ -149,7 +150,7 @@ export const getUserSubmissionsForProblem = async (req, res) => {
         status: s.status,
         language: s.language,
         runtime: `${totalTime.toFixed(2)}ms`,
-        memory: `${totalMemory.toFixed(2)}KB`,
+        memory: formatMemory(totalMemory),
         date: format(new Date(s.createdAt), 'MMM d, yyyy'),
       };
     });
